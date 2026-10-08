@@ -1,0 +1,13 @@
+diff --git a/node_modules/@react-native-community/cli-tools/build/isPackagerRunning.js b/node_modules/@react-native-community/cli-tools/build/isPackagerRunning.js
+index 0a1eaa7..4caf29b 100644
+--- a/node_modules/@react-native-community/cli-tools/build/isPackagerRunning.js
++++ b/node_modules/@react-native-community/cli-tools/build/isPackagerRunning.js
+@@ -30,7 +30,7 @@ async function isPackagerRunning(packagerPort = process.env.RCT_METRO_PORT || '8
+       if (data === 'packager-status:running') {
+         return {
+           status: 'running',
+-          root: headers.get('X-React-Native-Project-Root') ?? ''
++          root: decodeURI(headers.get('X-React-Native-Project-Root') ?? '')
+         };
+       }
+     } catch (_error) {
