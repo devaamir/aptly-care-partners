@@ -73,16 +73,28 @@ const DoctorsScreen: React.FC = () => {
       />
 
       <View style={styles.info}>
-        <Text style={styles.doctorName} numberOfLines={1}>
+        <Text
+          allowFontScaling={false}
+          style={styles.doctorName}
+          numberOfLines={1}
+        >
           {item.name.startsWith('Dr.') ? item.name : `Dr. ${item.name}`}
         </Text>
-        <Text style={styles.specialty} numberOfLines={1}>
+        <Text
+          allowFontScaling={false}
+          style={styles.specialty}
+          numberOfLines={1}
+        >
           {item.specialties.map(s => s.name).join(', ') || 'General Medicine'}
         </Text>
         <View style={styles.metaRow}>
-          <Text style={styles.metaText}>{item.yearsOfExperience} yrs exp</Text>
+          <Text allowFontScaling={false} style={styles.metaText}>
+            {item.yearsOfExperience} yrs exp
+          </Text>
           <View style={styles.metaDot} />
-          <Text style={styles.metaText}>₹{item.consultationFee}</Text>
+          <Text allowFontScaling={false} style={styles.metaText}>
+            ₹{item.consultationFee}
+          </Text>
         </View>
       </View>
     </View>
@@ -92,9 +104,13 @@ const DoctorsScreen: React.FC = () => {
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Doctors</Text>
+        <Text allowFontScaling={false} style={styles.headerTitle}>
+          Doctors
+        </Text>
         <View style={styles.countBadge}>
-          <Text style={styles.countBadgeText}>{doctors.length}</Text>
+          <Text allowFontScaling={false} style={styles.countBadgeText}>
+            {doctors.length}
+          </Text>
         </View>
       </View>
 
@@ -107,6 +123,7 @@ const DoctorsScreen: React.FC = () => {
             stroke={colors.textMuted}
           />
           <TextInput
+            allowFontScaling={false}
             style={styles.searchInput}
             value={search}
             onChangeText={setSearch}
@@ -119,7 +136,9 @@ const DoctorsScreen: React.FC = () => {
               onPress={() => setSearch('')}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Text style={styles.clearText}>✕</Text>
+              <Text allowFontScaling={false} style={styles.clearText}>
+                ✕
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -129,7 +148,9 @@ const DoctorsScreen: React.FC = () => {
       {loading ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Loading doctors...</Text>
+          <Text allowFontScaling={false} style={styles.loadingText}>
+            Loading doctors...
+          </Text>
         </View>
       ) : filtered.length === 0 ? (
         <View style={styles.centered}>
@@ -140,10 +161,10 @@ const DoctorsScreen: React.FC = () => {
               stroke={colors.textMuted}
             />
           </View>
-          <Text style={styles.emptyTitle}>
+          <Text allowFontScaling={false} style={styles.emptyTitle}>
             {search ? 'No doctors found' : 'No doctors yet'}
           </Text>
-          <Text style={styles.emptySubtitle}>
+          <Text allowFontScaling={false} style={styles.emptySubtitle}>
             {search
               ? 'Try adjusting your search query.'
               : 'Doctors assigned to this clinic will appear here.'}

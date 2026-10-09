@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from 'react';
 import {
   View,
   Text,
@@ -12,8 +18,8 @@ import {
   ScrollView,
   Modal,
   Alert,
-} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   getDoctors,
   getDoctorSchedule,
@@ -22,24 +28,24 @@ import {
   updateAppointmentStatus,
   pauseSchedule,
   cancelSchedulePause,
-} from '../../services/api'
+} from '../../services/api';
 import type {
   QueueSSEData,
   QueueAppointment,
   DoctorSchedule,
-} from '../../services/types'
-import { useAppContext } from '../../context/AppContext'
-import Badge, { tokenStatusVariant } from '../../components/Badge'
-import { colors, typography, spacing, radius, fonts } from '../../styles/theme'
-import { SIZE } from '../../themes/sizes'
+} from '../../services/types';
+import { useAppContext } from '../../context/AppContext';
+import Badge, { tokenStatusVariant } from '../../components/Badge';
+import { colors, typography, spacing, radius, fonts } from '../../styles/theme';
+import { SIZE } from '../../themes/sizes';
 import {
   InstantPauseIcon,
   ScheduledPauseIcon,
   RightArrowIcon,
   SkipIcon,
-} from '../../assets/icons'
+} from '../../assets/icons';
 
-const defaultDoctorAvatar = require('../../assets/images/doctor-profile.png')
+const defaultDoctorAvatar = require('../../assets/images/doctor-profile.png');
 
 const AVATAR_COLORS = [
   { bg: '#E8F0FE', text: '#4285F4' },
@@ -48,113 +54,153 @@ const AVATAR_COLORS = [
   { bg: '#F3E8FE', text: '#9334EA' },
   { bg: '#E8F9FE', text: '#0288D1' },
   { bg: '#FCE8E8', text: '#E53935' },
-]
+];
 
 const getInitials = (name: string) => {
-  const parts = name.trim().split(' ').filter(Boolean)
-  if (parts.length === 0) return 'P'
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-}
+  const parts = name.trim().split(' ').filter(Boolean);
+  if (parts.length === 0) return 'P';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
 
 const getAvatarColor = (name: string) => {
-  let hash = 0
-  for (let i = 0; i < name.length; i++) hash += name.charCodeAt(i)
-  return AVATAR_COLORS[hash % AVATAR_COLORS.length]
-}
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash += name.charCodeAt(i);
+  return AVATAR_COLORS[hash % AVATAR_COLORS.length];
+};
 
 const getStatusConfig = (status: string) => {
   switch (status) {
-    case 'done': return { label: 'Completed', dotColor: '#16A34A', textColor: '#16A34A', solid: false }
-    case 'ongoing': return { label: 'Current', dotColor: colors.primary, textColor: colors.primary, solid: true }
-    case 'skipped': return { label: 'Skipped', dotColor: '#F59E0B', textColor: '#D97706', solid: false }
-    case 'cancelled': return { label: 'Cancelled', dotColor: '#EF4444', textColor: '#DC2626', solid: false }
-    default: return { label: 'Waiting', dotColor: '#94A3B8', textColor: '#64748B', solid: false }
+    case 'done':
+      return {
+        label: 'Completed',
+        dotColor: '#16A34A',
+        textColor: '#16A34A',
+        solid: false,
+      };
+    case 'ongoing':
+      return {
+        label: 'Current',
+        dotColor: colors.primary,
+        textColor: colors.primary,
+        solid: true,
+      };
+    case 'skipped':
+      return {
+        label: 'Skipped',
+        dotColor: '#F59E0B',
+        textColor: '#D97706',
+        solid: false,
+      };
+    case 'cancelled':
+      return {
+        label: 'Cancelled',
+        dotColor: '#EF4444',
+        textColor: '#DC2626',
+        solid: false,
+      };
+    default:
+      return {
+        label: 'Waiting',
+        dotColor: '#94A3B8',
+        textColor: '#64748B',
+        solid: false,
+      };
   }
-}
+};
 
 interface QueueDoctor {
-  id: string
-  name: string
-  profilePicture?: string | null
-  specialties?: string[]
+  id: string;
+  name: string;
+  profilePicture?: string | null;
+  specialties?: string[];
 }
 
 const getTodayDateStr = () => {
   try {
-    return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
+    return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
   } catch {
-    const d = new Date()
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+      2,
+      '0',
+    )}-${String(d.getDate()).padStart(2, '0')}`;
   }
-}
+};
 
 const formatTo12h = (timeStr?: string) => {
-  if (!timeStr) return '—'
+  if (!timeStr) return '—';
   try {
-    const [h, m] = timeStr.slice(0, 5).split(':').map(Number)
-    const ampm = h >= 12 ? 'PM' : 'AM'
-    const h12 = h % 12 || 12
-    return `${h12}:${String(m).padStart(2, '0')} ${ampm}`
+    const [h, m] = timeStr.slice(0, 5).split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
   } catch {
-    return timeStr
+    return timeStr;
   }
-}
+};
 
-const formatPatientSubtitle = (patient?: { gender?: string; dateOfBirth?: string; phoneNumber?: string }) => {
-  if (!patient) return 'Patient'
-  const parts: string[] = []
+const formatPatientSubtitle = (patient?: {
+  gender?: string;
+  dateOfBirth?: string;
+  phoneNumber?: string;
+}) => {
+  if (!patient) return 'Patient';
+  const parts: string[] = [];
   if (patient.gender) {
-    parts.push(patient.gender.charAt(0).toUpperCase() + patient.gender.slice(1).toLowerCase())
+    parts.push(
+      patient.gender.charAt(0).toUpperCase() +
+        patient.gender.slice(1).toLowerCase(),
+    );
   }
   if (patient.dateOfBirth) {
-    const dob = new Date(patient.dateOfBirth)
+    const dob = new Date(patient.dateOfBirth);
     if (!isNaN(dob.getTime())) {
-      const now = new Date()
-      let age = now.getFullYear() - dob.getFullYear()
-      const m = now.getMonth() - dob.getMonth()
-      if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age--
-      if (age >= 0 && age < 130) parts.push(`${age} yrs`)
+      const now = new Date();
+      let age = now.getFullYear() - dob.getFullYear();
+      const m = now.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age--;
+      if (age >= 0 && age < 130) parts.push(`${age} yrs`);
     }
   }
   if (patient.phoneNumber) {
-    parts.push(patient.phoneNumber)
+    parts.push(patient.phoneNumber);
   }
-  return parts.length > 0 ? parts.join(' • ') : 'No additional info'
-}
+  return parts.length > 0 ? parts.join(' • ') : 'No additional info';
+};
 
 const QueueScreen: React.FC = () => {
-  const { activeContext, activeDoctor } = useAppContext()
-  const isDoctor = activeContext?.role?.toLowerCase() === 'doctor'
-  const medicalCenterId = activeContext?.medicalCenter?.id
+  const { activeContext, activeDoctor } = useAppContext();
+  const isDoctor = activeContext?.role?.toLowerCase() === 'doctor';
+  const medicalCenterId = activeContext?.medicalCenter?.id;
 
   // Doctor state
-  const [doctors, setDoctors] = useState<QueueDoctor[]>([])
-  const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null)
-  const [loadingDoctors, setLoadingDoctors] = useState(true)
+  const [doctors, setDoctors] = useState<QueueDoctor[]>([]);
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null);
+  const [loadingDoctors, setLoadingDoctors] = useState(true);
 
   // Schedules state
-  const [schedules, setSchedules] = useState<DoctorSchedule[]>([])
-  const [selectedSchedule, setSelectedSchedule] = useState<DoctorSchedule | null>(null)
-  const [loadingSchedules, setLoadingSchedules] = useState(false)
+  const [schedules, setSchedules] = useState<DoctorSchedule[]>([]);
+  const [selectedSchedule, setSelectedSchedule] =
+    useState<DoctorSchedule | null>(null);
+  const [loadingSchedules, setLoadingSchedules] = useState(false);
 
   // Queue state
   const [queueData, setQueueData] = useState<QueueSSEData>({
     appointments: [],
     activePauses: [],
-  })
-  const [loadingQueue, setLoadingQueue] = useState(false)
-  const [refreshing, setRefreshing] = useState(false)
-  const [connected, setConnected] = useState(false)
-  const [actionLoading, setActionLoading] = useState<string | null>(null)
-
+  });
+  const [loadingQueue, setLoadingQueue] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [connected, setConnected] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   // Pause modal state
-  const [showPauseModal, setShowPauseModal] = useState(false)
-  const [customStopTime, setCustomStopTime] = useState('')
-  const [pauseSubmitting, setPauseSubmitting] = useState(false)
+  const [showPauseModal, setShowPauseModal] = useState(false);
+  const [customStopTime, setCustomStopTime] = useState('');
+  const [pauseSubmitting, setPauseSubmitting] = useState(false);
 
-  const sseRef = useRef<EventSource | null>(null)
+  const sseRef = useRef<EventSource | null>(null);
 
   // 1. Fetch / Initialize Doctors
   useEffect(() => {
@@ -163,19 +209,19 @@ const QueueScreen: React.FC = () => {
         id: activeDoctor.id,
         name: activeDoctor.name,
         profilePicture: activeDoctor.profilePicture ?? null,
-      }
-      setDoctors([doc])
-      setSelectedDoctorId(doc.id)
-      setLoadingDoctors(false)
-      return
+      };
+      setDoctors([doc]);
+      setSelectedDoctorId(doc.id);
+      setLoadingDoctors(false);
+      return;
     }
 
     if (!medicalCenterId) {
-      setLoadingDoctors(false)
-      return
+      setLoadingDoctors(false);
+      return;
     }
 
-    setLoadingDoctors(true)
+    setLoadingDoctors(true);
     getDoctors(medicalCenterId)
       .then(res => {
         if (res.success && res.data && res.data.length > 0) {
@@ -184,133 +230,143 @@ const QueueScreen: React.FC = () => {
             name: d.name,
             profilePicture: d.profilePicture ?? null,
             specialties: d.specialties?.map(s => s.name) || [],
-          }))
-          setDoctors(mapped)
-          setSelectedDoctorId(mapped[0].id)
+          }));
+          setDoctors(mapped);
+          setSelectedDoctorId(mapped[0].id);
         } else {
-          setDoctors([])
-          setSelectedDoctorId(null)
+          setDoctors([]);
+          setSelectedDoctorId(null);
         }
       })
       .catch(() => {
-        setDoctors([])
-        setSelectedDoctorId(null)
+        setDoctors([]);
+        setSelectedDoctorId(null);
       })
       .finally(() => {
-        setLoadingDoctors(false)
-      })
-  }, [isDoctor, activeDoctor, medicalCenterId])
+        setLoadingDoctors(false);
+      });
+  }, [isDoctor, activeDoctor, medicalCenterId]);
 
   // Current selected doctor
   const currentDoctor = useMemo(() => {
-    return doctors.find(d => d.id === selectedDoctorId) || doctors[0] || null
-  }, [doctors, selectedDoctorId])
+    return doctors.find(d => d.id === selectedDoctorId) || doctors[0] || null;
+  }, [doctors, selectedDoctorId]);
 
   // 2. Fetch Doctor Schedules for Today
-  const fetchSchedules = useCallback(async (docId: string) => {
-    if (!docId || !medicalCenterId) {
-      setSchedules([])
-      setSelectedSchedule(null)
-      return
-    }
-
-    setLoadingSchedules(true)
-    const today = getTodayDateStr()
-
-    try {
-      const res = await getDoctorSchedule(docId, today, medicalCenterId)
-      if (res.success && Array.isArray(res.data)) {
-        setSchedules(res.data)
-        if (res.data.length > 0) {
-          setSelectedSchedule(res.data[0])
-        } else {
-          setSelectedSchedule(null)
-        }
-      } else {
-        setSchedules([])
-        setSelectedSchedule(null)
+  const fetchSchedules = useCallback(
+    async (docId: string) => {
+      if (!docId || !medicalCenterId) {
+        setSchedules([]);
+        setSelectedSchedule(null);
+        return;
       }
-    } catch {
-      setSchedules([])
-      setSelectedSchedule(null)
-    } finally {
-      setLoadingSchedules(false)
-    }
-  }, [medicalCenterId])
+
+      setLoadingSchedules(true);
+      const today = getTodayDateStr();
+
+      try {
+        const res = await getDoctorSchedule(docId, today, medicalCenterId);
+        if (res.success && Array.isArray(res.data)) {
+          setSchedules(res.data);
+          if (res.data.length > 0) {
+            setSelectedSchedule(res.data[0]);
+          } else {
+            setSelectedSchedule(null);
+          }
+        } else {
+          setSchedules([]);
+          setSelectedSchedule(null);
+        }
+      } catch {
+        setSchedules([]);
+        setSelectedSchedule(null);
+      } finally {
+        setLoadingSchedules(false);
+      }
+    },
+    [medicalCenterId],
+  );
 
   useEffect(() => {
     if (selectedDoctorId) {
-      fetchSchedules(selectedDoctorId)
+      fetchSchedules(selectedDoctorId);
     } else {
-      setSchedules([])
-      setSelectedSchedule(null)
+      setSchedules([]);
+      setSelectedSchedule(null);
     }
-  }, [selectedDoctorId, fetchSchedules])
+  }, [selectedDoctorId, fetchSchedules]);
 
   // 3. Fetch initial queue appointments via REST API (fail-safe)
-  const fetchQueueAppointments = useCallback(async (scheduleId: string, docId: string) => {
-    const today = getTodayDateStr()
-    try {
-      const res = await getAppointments(1, 100)
-      if (res.success && Array.isArray(res.data)) {
-        const filtered = res.data.filter(a => {
-          const isDoc = a.doctor?.id === docId
-          const isSched = !scheduleId || a.schedule?.id === scheduleId
-          const aptDate = a.appointmentDate ? a.appointmentDate.split('T')[0] : ''
-          const isToday = !aptDate || aptDate === today
-          return isDoc && isSched && isToday
-        })
+  const fetchQueueAppointments = useCallback(
+    async (scheduleId: string, docId: string) => {
+      const today = getTodayDateStr();
+      try {
+        const res = await getAppointments(1, 100);
+        if (res.success && Array.isArray(res.data)) {
+          const filtered = res.data.filter(a => {
+            const isDoc = a.doctor?.id === docId;
+            const isSched = !scheduleId || a.schedule?.id === scheduleId;
+            const aptDate = a.appointmentDate
+              ? a.appointmentDate.split('T')[0]
+              : '';
+            const isToday = !aptDate || aptDate === today;
+            return isDoc && isSched && isToday;
+          });
 
-        const mapped: QueueAppointment[] = filtered
-          .map(a => ({
-            id: a.id,
-            tokenNumber: a.tokenNumber,
-            tokenStatus: a.tokenStatus,
-            createdAt: a.appointmentDate || new Date().toISOString(),
-            updatedAt: a.appointmentDate || new Date().toISOString(),
-            patient: {
-              name: a.patient?.name || 'Unknown Patient',
-              phoneNumber: a.patient?.phoneNumber || '',
-              gender: a.patient?.gender || '',
-              dateOfBirth: a.patient?.dateOfBirth || '',
-            },
-            doctor: {
-              estimateConsultationTime: a.doctor?.estimateConsultationTime || 10,
-            },
-          }))
-          .sort((a, b) => a.tokenNumber - b.tokenNumber)
+          const mapped: QueueAppointment[] = filtered
+            .map(a => ({
+              id: a.id,
+              tokenNumber: a.tokenNumber,
+              tokenStatus: a.tokenStatus,
+              createdAt: a.appointmentDate || new Date().toISOString(),
+              updatedAt: a.appointmentDate || new Date().toISOString(),
+              patient: {
+                name: a.patient?.name || 'Unknown Patient',
+                phoneNumber: a.patient?.phoneNumber || '',
+                gender: a.patient?.gender || '',
+                dateOfBirth: a.patient?.dateOfBirth || '',
+              },
+              doctor: {
+                estimateConsultationTime:
+                  a.doctor?.estimateConsultationTime || 10,
+              },
+            }))
+            .sort((a, b) => a.tokenNumber - b.tokenNumber);
 
-        setQueueData(prev => ({
-          ...prev,
-          appointments: mapped,
-        }))
+          setQueueData(prev => ({
+            ...prev,
+            appointments: mapped,
+          }));
+        }
+      } catch {
+        // Retain existing data gracefully
       }
-    } catch {
-      // Retain existing data gracefully
-    }
-  }, [])
+    },
+    [],
+  );
 
   // 4. Subscribe SSE & fetch REST data for active schedule
   useEffect(() => {
     if (!selectedSchedule || !currentDoctor) {
-      setQueueData({ appointments: [], activePauses: [] })
-      setConnected(false)
-      return
+      setQueueData({ appointments: [], activePauses: [] });
+      setConnected(false);
+      return;
     }
 
     if (sseRef.current) {
       try {
-        sseRef.current.close()
+        sseRef.current.close();
       } catch {}
-      sseRef.current = null
+      sseRef.current = null;
     }
 
-    setConnected(false)
-    setLoadingQueue(true)
+    setConnected(false);
+    setLoadingQueue(true);
 
     // Initial REST load
-    fetchQueueAppointments(selectedSchedule.id, currentDoctor.id)
-      .finally(() => setLoadingQueue(false))
+    fetchQueueAppointments(selectedSchedule.id, currentDoctor.id).finally(() =>
+      setLoadingQueue(false),
+    );
 
     // Subscribe SSE
     subscribeQueue(
@@ -318,73 +374,79 @@ const QueueScreen: React.FC = () => {
       data => {
         if (data && Array.isArray(data.appointments)) {
           const sortedAppointments = [...data.appointments].sort(
-            (a, b) => a.tokenNumber - b.tokenNumber
-          )
+            (a, b) => a.tokenNumber - b.tokenNumber,
+          );
           setQueueData({
             ...data,
             appointments: sortedAppointments,
-          })
-          setConnected(true)
-          setLoadingQueue(false)
+          });
+          setConnected(true);
+          setLoadingQueue(false);
         }
       },
       () => {
-        setConnected(false)
-      }
+        setConnected(false);
+      },
     )
       .then(es => {
-        sseRef.current = es
+        sseRef.current = es;
       })
       .catch(() => {
-        setConnected(false)
-      })
+        setConnected(false);
+      });
 
     return () => {
       if (sseRef.current) {
         try {
-          sseRef.current.close()
+          sseRef.current.close();
         } catch {}
-        sseRef.current = null
+        sseRef.current = null;
       }
-    }
-  }, [selectedSchedule?.id, currentDoctor?.id, fetchQueueAppointments])
+    };
+  }, [selectedSchedule?.id, currentDoctor?.id, fetchQueueAppointments]);
 
   // Pull to refresh
   const onRefresh = useCallback(async () => {
-    setRefreshing(true)
+    setRefreshing(true);
     if (selectedDoctorId) {
-      await fetchSchedules(selectedDoctorId)
+      await fetchSchedules(selectedDoctorId);
     }
     if (selectedSchedule && currentDoctor) {
-      await fetchQueueAppointments(selectedSchedule.id, currentDoctor.id)
+      await fetchQueueAppointments(selectedSchedule.id, currentDoctor.id);
     }
-    setRefreshing(false)
-  }, [selectedDoctorId, fetchSchedules, selectedSchedule, currentDoctor, fetchQueueAppointments])
+    setRefreshing(false);
+  }, [
+    selectedDoctorId,
+    fetchSchedules,
+    selectedSchedule,
+    currentDoctor,
+    fetchQueueAppointments,
+  ]);
 
   // Status updates
   const handleStatusUpdate = async (
     id: string,
-    status: 'pending' | 'done' | 'cancelled' | 'skipped' | 'ongoing'
+    status: 'pending' | 'done' | 'cancelled' | 'skipped' | 'ongoing',
   ) => {
-    setActionLoading(id)
+    setActionLoading(id);
     // Optimistic UI update
     setQueueData(prev => ({
       ...prev,
       appointments: prev.appointments.map(a =>
-        a.id === id ? { ...a, tokenStatus: status } : a
+        a.id === id ? { ...a, tokenStatus: status } : a,
       ),
-    }))
+    }));
 
     try {
-      await updateAppointmentStatus(id, status)
+      await updateAppointmentStatus(id, status);
     } catch {
       if (selectedSchedule && currentDoctor) {
-        fetchQueueAppointments(selectedSchedule.id, currentDoctor.id)
+        fetchQueueAppointments(selectedSchedule.id, currentDoctor.id);
       }
     } finally {
-      setActionLoading(null)
+      setActionLoading(null);
     }
-  }
+  };
 
   // Confirmation to cancel appointment
   const handleCancelConfirm = (id: string, tokenNumber: number) => {
@@ -398,80 +460,86 @@ const QueueScreen: React.FC = () => {
           style: 'destructive',
           onPress: () => handleStatusUpdate(id, 'cancelled'),
         },
-      ]
-    )
-  }
+      ],
+    );
+  };
 
   // Next Token quick action
   const handleNextToken = async () => {
-    const ongoing = queueData.appointments.find(a => a.tokenStatus === 'ongoing')
-    const nextPending = queueData.appointments.find(a => a.tokenStatus === 'pending')
+    const ongoing = queueData.appointments.find(
+      a => a.tokenStatus === 'ongoing',
+    );
+    const nextPending = queueData.appointments.find(
+      a => a.tokenStatus === 'pending',
+    );
 
     if (ongoing) {
-      setActionLoading(ongoing.id)
+      setActionLoading(ongoing.id);
       try {
-        await updateAppointmentStatus(ongoing.id, 'done')
+        await updateAppointmentStatus(ongoing.id, 'done');
         if (nextPending) {
-          await updateAppointmentStatus(nextPending.id, 'ongoing')
+          await updateAppointmentStatus(nextPending.id, 'ongoing');
         }
         if (selectedSchedule && currentDoctor) {
-          fetchQueueAppointments(selectedSchedule.id, currentDoctor.id)
+          fetchQueueAppointments(selectedSchedule.id, currentDoctor.id);
         }
-      } catch {}
-      finally {
-        setActionLoading(null)
+      } catch {
+      } finally {
+        setActionLoading(null);
       }
     } else if (nextPending) {
-      handleStatusUpdate(nextPending.id, 'ongoing')
+      handleStatusUpdate(nextPending.id, 'ongoing');
     }
-  }
+  };
 
   // Pause schedule handling
   const handlePauseSubmit = async (stopTime: string) => {
-    if (!selectedSchedule || !stopTime) return
-    const today = getTodayDateStr()
-    const nowTime = new Date().toTimeString().slice(0, 5)
+    if (!selectedSchedule || !stopTime) return;
+    const today = getTodayDateStr();
+    const nowTime = new Date().toTimeString().slice(0, 5);
 
-    setPauseSubmitting(true)
+    setPauseSubmitting(true);
     try {
       const res = await pauseSchedule(selectedSchedule.id, {
         date: today,
         startTime: nowTime,
         stopTime,
-      })
+      });
       if (res.success && res.data) {
         setQueueData(prev => ({
           ...prev,
           activePauses: [...(prev.activePauses || []), res.data],
-        }))
+        }));
       }
-      setShowPauseModal(false)
-      setCustomStopTime('')
+      setShowPauseModal(false);
+      setCustomStopTime('');
     } catch {
-      Alert.alert('Error', 'Failed to pause schedule. Please try again.')
+      Alert.alert('Error', 'Failed to pause schedule. Please try again.');
     } finally {
-      setPauseSubmitting(false)
+      setPauseSubmitting(false);
     }
-  }
+  };
 
   const handleQuickPause = (minutes: number) => {
-    const now = new Date()
-    now.setMinutes(now.getMinutes() + minutes)
-    const stopTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
-    handlePauseSubmit(stopTime)
-  }
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + minutes);
+    const stopTime = `${String(now.getHours()).padStart(2, '0')}:${String(
+      now.getMinutes(),
+    ).padStart(2, '0')}`;
+    handlePauseSubmit(stopTime);
+  };
 
   const handleCancelPause = async (pauseId: string) => {
     try {
-      await cancelSchedulePause(pauseId)
+      await cancelSchedulePause(pauseId);
       setQueueData(prev => ({
         ...prev,
         activePauses: prev.activePauses.filter(p => p.id !== pauseId),
-      }))
+      }));
     } catch {
-      Alert.alert('Error', 'Failed to resume schedule.')
+      Alert.alert('Error', 'Failed to resume schedule.');
     }
-  }
+  };
 
   // Filtered Appointments sorted by tokenNumber ascending (First on top)
   const ongoingAppts = useMemo(
@@ -479,22 +547,23 @@ const QueueScreen: React.FC = () => {
       queueData.appointments
         .filter(a => a.tokenStatus === 'ongoing')
         .sort((a, b) => a.tokenNumber - b.tokenNumber),
-    [queueData.appointments]
-  )
+    [queueData.appointments],
+  );
   const pendingAppts = useMemo(
     () =>
       queueData.appointments
         .filter(a => a.tokenStatus === 'pending')
         .sort((a, b) => a.tokenNumber - b.tokenNumber),
-    [queueData.appointments]
-  )
-  const activePauses = queueData.activePauses || []
-  const isPaused = activePauses.length > 0
+    [queueData.appointments],
+  );
+  const activePauses = queueData.activePauses || [];
+  const isPaused = activePauses.length > 0;
 
   const displayList = useMemo(
-    () => [...queueData.appointments].sort((a, b) => a.tokenNumber - b.tokenNumber),
-    [queueData.appointments]
-  )
+    () =>
+      [...queueData.appointments].sort((a, b) => a.tokenNumber - b.tokenNumber),
+    [queueData.appointments],
+  );
 
   // RENDER: Loading Doctors
   if (loadingDoctors) {
@@ -502,10 +571,12 @@ const QueueScreen: React.FC = () => {
       <SafeAreaView style={styles.safe}>
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Loading doctors...</Text>
+          <Text allowFontScaling={false} style={styles.loadingText}>
+            Loading doctors...
+          </Text>
         </View>
       </SafeAreaView>
-    )
+    );
   }
 
   // RENDER: No Doctors in Clinic
@@ -513,55 +584,87 @@ const QueueScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.centered}>
-          <Text style={styles.emptyIcon}>🩺</Text>
-          <Text style={styles.emptyTitle}>No Doctors Available</Text>
-          <Text style={styles.emptySubtitle}>
+          <Text allowFontScaling={false} style={styles.emptyIcon}>
+            🩺
+          </Text>
+          <Text allowFontScaling={false} style={styles.emptyTitle}>
+            No Doctors Available
+          </Text>
+          <Text allowFontScaling={false} style={styles.emptySubtitle}>
             No active doctors registered for this medical center.
           </Text>
         </View>
       </SafeAreaView>
-    )
+    );
   }
 
   const renderQueueItem = ({ item }: { item: QueueAppointment }) => {
-    const isOngoing = item.tokenStatus === 'ongoing'
-    const isSkipped = item.tokenStatus === 'skipped'
-    const isCancelled = item.tokenStatus === 'cancelled'
-    const isPending = item.tokenStatus === 'pending'
+    const isOngoing = item.tokenStatus === 'ongoing';
+    const isSkipped = item.tokenStatus === 'skipped';
+    const isCancelled = item.tokenStatus === 'cancelled';
+    const isPending = item.tokenStatus === 'pending';
 
-    const initials = getInitials(item.patient.name)
-    const avatarColor = getAvatarColor(item.patient.name)
-    const tokenStr = String(item.tokenNumber).padStart(2, '0')
-    const statusCfg = getStatusConfig(item.tokenStatus)
-    const apptTime = item.createdAt ? formatTo12h(item.createdAt.slice(11, 16)) : '—'
+    const initials = getInitials(item.patient.name);
+    const avatarColor = getAvatarColor(item.patient.name);
+    const tokenStr = String(item.tokenNumber).padStart(2, '0');
+    const statusCfg = getStatusConfig(item.tokenStatus);
+    const apptTime = item.createdAt
+      ? formatTo12h(item.createdAt.slice(11, 16))
+      : '—';
 
     return (
-      <View style={[
-        styles.queueCard,
-        isOngoing && styles.queueCardCurrent,
-        isCancelled && styles.queueCardCancelled,
-      ]}>
+      <View
+        style={[
+          styles.queueCard,
+          isOngoing && styles.queueCardCurrent,
+          isCancelled && styles.queueCardCancelled,
+        ]}
+      >
         {/* Left: token number + time */}
         <View style={styles.tokenCol}>
           <View style={[styles.tokenBox, isOngoing && styles.tokenBoxCurrent]}>
-            <Text style={[styles.tokenNumText, isOngoing && styles.tokenNumTextCurrent]}>
+            <Text
+              style={[
+                styles.tokenNumText,
+                isOngoing && styles.tokenNumTextCurrent,
+              ]}
+            >
               {tokenStr}
             </Text>
           </View>
-          <Text style={styles.tokenTime}>{apptTime}</Text>
+          <Text allowFontScaling={false} style={styles.tokenTime}>
+            {apptTime}
+          </Text>
         </View>
 
         {/* Initials avatar */}
-        <View style={[styles.initialsCircle, { backgroundColor: avatarColor.bg }]}>
-          <Text style={[styles.initialsText, { color: avatarColor.text }]}>{initials}</Text>
+        <View
+          style={[styles.initialsCircle, { backgroundColor: avatarColor.bg }]}
+        >
+          <Text
+            allowFontScaling={false}
+            style={[styles.initialsText, { color: avatarColor.text }]}
+          >
+            {initials}
+          </Text>
         </View>
 
         {/* Patient name + phone */}
         <View style={styles.queueInfo}>
-          <Text style={[styles.queuePatient, isCancelled && styles.queuePatientCancelled]} numberOfLines={1}>
+          <Text
+            style={[
+              styles.queuePatient,
+              isCancelled && styles.queuePatientCancelled,
+            ]}
+            numberOfLines={1}
+          >
             {item.patient.name}
           </Text>
-          <Text style={styles.queuePhone} numberOfLines={1}>
+          <Text
+            allowFontScaling={false}
+            style={styles.queuePhone}
+            numberOfLines={1}
+          >
             {item.patient.phoneNumber || '—'}
           </Text>
         </View>
@@ -569,12 +672,17 @@ const QueueScreen: React.FC = () => {
         {/* Status + actions */}
         <View style={styles.queueActionsCol}>
           <View style={styles.statusRow}>
-            <View style={[
-              styles.statusDot,
-              { backgroundColor: statusCfg.dotColor },
-              statusCfg.solid && styles.statusDotSolid,
-            ]} />
-            <Text style={[styles.statusText, { color: statusCfg.textColor }]}>
+            <View
+              style={[
+                styles.statusDot,
+                { backgroundColor: statusCfg.dotColor },
+                statusCfg.solid && styles.statusDotSolid,
+              ]}
+            />
+            <Text
+              allowFontScaling={false}
+              style={[styles.statusText, { color: statusCfg.textColor }]}
+            >
               {statusCfg.label}
             </Text>
           </View>
@@ -587,7 +695,9 @@ const QueueScreen: React.FC = () => {
                 disabled={actionLoading === item.id}
                 activeOpacity={0.8}
               >
-                <Text style={styles.miniBtnText}>Start</Text>
+                <Text allowFontScaling={false} style={styles.miniBtnText}>
+                  Start
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.miniBtn, styles.miniBtnSkip]}
@@ -595,7 +705,12 @@ const QueueScreen: React.FC = () => {
                 disabled={actionLoading === item.id}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.miniBtnText, { color: colors.warning }]}>Skip</Text>
+                <Text
+                  allowFontScaling={false}
+                  style={[styles.miniBtnText, { color: colors.warning }]}
+                >
+                  Skip
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.miniBtn, styles.miniBtnCancel]}
@@ -603,7 +718,12 @@ const QueueScreen: React.FC = () => {
                 disabled={actionLoading === item.id}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.miniBtnText, { color: colors.danger }]}>✕</Text>
+                <Text
+                  allowFontScaling={false}
+                  style={[styles.miniBtnText, { color: colors.danger }]}
+                >
+                  ✕
+                </Text>
               </TouchableOpacity>
             </View>
           )}
@@ -615,7 +735,12 @@ const QueueScreen: React.FC = () => {
               disabled={actionLoading === item.id}
               activeOpacity={0.8}
             >
-              <Text style={[styles.miniBtnText, { color: colors.white }]}>Done ✓</Text>
+              <Text
+                allowFontScaling={false}
+                style={[styles.miniBtnText, { color: colors.white }]}
+              >
+                Done ✓
+              </Text>
             </TouchableOpacity>
           )}
 
@@ -627,7 +752,9 @@ const QueueScreen: React.FC = () => {
                 disabled={actionLoading === item.id}
                 activeOpacity={0.8}
               >
-                <Text style={styles.miniBtnText}>Resume</Text>
+                <Text allowFontScaling={false} style={styles.miniBtnText}>
+                  Resume
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.miniBtn, styles.miniBtnCancel]}
@@ -635,7 +762,12 @@ const QueueScreen: React.FC = () => {
                 disabled={actionLoading === item.id}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.miniBtnText, { color: colors.danger }]}>✕</Text>
+                <Text
+                  allowFontScaling={false}
+                  style={[styles.miniBtnText, { color: colors.danger }]}
+                >
+                  ✕
+                </Text>
               </TouchableOpacity>
             </View>
           )}
@@ -647,23 +779,31 @@ const QueueScreen: React.FC = () => {
               disabled={actionLoading === item.id}
               activeOpacity={0.8}
             >
-              <Text style={styles.miniBtnReopenText}>Reopen</Text>
+              <Text allowFontScaling={false} style={styles.miniBtnReopenText}>
+                Reopen
+              </Text>
             </TouchableOpacity>
           )}
 
           {actionLoading === item.id && (
-            <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: SIZE(4) }} />
+            <ActivityIndicator
+              size="small"
+              color={colors.primary}
+              style={{ marginTop: SIZE(4) }}
+            />
           )}
         </View>
       </View>
-    )
-  }
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       {/* 1. Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Queue Management</Text>
+        <Text allowFontScaling={false} style={styles.headerTitle}>
+          Queue Management
+        </Text>
       </View>
 
       {/* 2. Doctor Selector Tabs */}
@@ -675,19 +815,28 @@ const QueueScreen: React.FC = () => {
             contentContainerStyle={styles.doctorTabsContent}
           >
             {doctors.map(doc => {
-              const isSelected = doc.id === selectedDoctorId
+              const isSelected = doc.id === selectedDoctorId;
               return (
                 <TouchableOpacity
                   key={doc.id}
-                  style={[styles.doctorTab, isSelected && styles.doctorTabActive]}
+                  style={[
+                    styles.doctorTab,
+                    isSelected && styles.doctorTabActive,
+                  ]}
                   onPress={() => setSelectedDoctorId(doc.id)}
                   activeOpacity={0.8}
                 >
-                  <Text style={[styles.doctorTabText, isSelected && styles.doctorTabTextActive]} numberOfLines={1}>
-                    Dr. {doc.name}
+                  <Text
+                    style={[
+                      styles.doctorTabText,
+                      isSelected && styles.doctorTabTextActive,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {doc.name}
                   </Text>
                 </TouchableOpacity>
-              )
+              );
             })}
           </ScrollView>
         </View>
@@ -696,21 +845,34 @@ const QueueScreen: React.FC = () => {
       {/* 4. Session Tab Strip */}
       {schedules.length > 0 && (
         <View style={styles.sessionTabBar}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sessionTabBarContent}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.sessionTabBarContent}
+          >
             {schedules.map(s => {
-              const isActive = selectedSchedule?.id === s.id
+              const isActive = selectedSchedule?.id === s.id;
               return (
                 <TouchableOpacity
                   key={s.id}
-                  style={[styles.sessionTab, isActive && styles.sessionTabActive]}
+                  style={[
+                    styles.sessionTab,
+                    isActive && styles.sessionTabActive,
+                  ]}
                   onPress={() => setSelectedSchedule(s)}
                   activeOpacity={0.8}
                 >
-                  <Text style={[styles.sessionTabText, isActive && styles.sessionTabTextActive]}>
-                    {formatTo12h(s.startTime).toLowerCase()} – {formatTo12h(s.stopTime).toLowerCase()}
+                  <Text
+                    style={[
+                      styles.sessionTabText,
+                      isActive && styles.sessionTabTextActive,
+                    ]}
+                  >
+                    {formatTo12h(s.startTime).toLowerCase()} –{' '}
+                    {formatTo12h(s.stopTime).toLowerCase()}
                   </Text>
                 </TouchableOpacity>
-              )
+              );
             })}
           </ScrollView>
         </View>
@@ -722,19 +884,36 @@ const QueueScreen: React.FC = () => {
           {/* Doctor row */}
           <View style={styles.heroTop}>
             <Image
-              source={currentDoctor.profilePicture ? { uri: currentDoctor.profilePicture } : defaultDoctorAvatar}
+              source={
+                currentDoctor.profilePicture
+                  ? { uri: currentDoctor.profilePicture }
+                  : defaultDoctorAvatar
+              }
               style={styles.heroAvatar}
             />
             <View style={styles.heroDoctorInfo}>
               <View style={styles.heroDoctorNameRow}>
-                <Text style={styles.heroDoctorName} numberOfLines={1}>Dr. {currentDoctor.name}</Text>
+                <Text
+                  allowFontScaling={false}
+                  style={styles.heroDoctorName}
+                  numberOfLines={1}
+                >
+                  {currentDoctor.name}
+                </Text>
                 <View style={styles.liveBadge}>
                   <View style={styles.liveDotGreen} />
-                  <Text style={styles.liveBadgeText}>Live</Text>
+                  <Text allowFontScaling={false} style={styles.liveBadgeText}>
+                    Live
+                  </Text>
                 </View>
               </View>
-              <Text style={styles.heroDoctorSpecialty} numberOfLines={1}>
-                {currentDoctor.specialties && currentDoctor.specialties.length > 0
+              <Text
+                allowFontScaling={false}
+                style={styles.heroDoctorSpecialty}
+                numberOfLines={1}
+              >
+                {currentDoctor.specialties &&
+                currentDoctor.specialties.length > 0
                   ? currentDoctor.specialties.join(', ')
                   : 'Physician'}
               </Text>
@@ -743,42 +922,77 @@ const QueueScreen: React.FC = () => {
 
           {/* Action buttons row */}
           {selectedSchedule && (
-            <View style={styles.heroBtnsRow}>
-              <TouchableOpacity
-                style={[styles.heroPill, isPaused && styles.heroPillActive]}
-                onPress={() => handleQuickPause(15)}
-                activeOpacity={0.8}
-              >
-                <InstantPauseIcon width={16} height={16} fill={isPaused ? colors.white : colors.textSecondary} />
-                <Text style={[styles.heroPillText, isPaused && styles.heroPillTextActive]}>Instant Pause</Text>
-              </TouchableOpacity>
+            <>
+              <View style={styles.heroBtnsRow}>
+                <TouchableOpacity
+                  style={[styles.heroPill, isPaused && styles.heroPillActive]}
+                  onPress={() => handleQuickPause(15)}
+                  activeOpacity={0.8}
+                >
+                  <InstantPauseIcon
+                    width={16}
+                    height={16}
+                    stroke={isPaused ? colors.white : '#494F5A'}
+                    color={isPaused ? colors.white : '#494F5A'}
+                  />
+                  <Text
+                    style={[
+                      styles.heroPillText,
+                      isPaused && styles.heroPillTextActive,
+                    ]}
+                  >
+                    Instant Pause
+                  </Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.heroPill}
-                onPress={() => setShowPauseModal(true)}
-                activeOpacity={0.8}
-              >
-                <ScheduledPauseIcon width={16} height={16} fill={colors.textSecondary} />
-                <Text style={styles.heroPillText}>Scheduled Pause</Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.heroPill}
+                  onPress={() => setShowPauseModal(true)}
+                  activeOpacity={0.8}
+                >
+                  <ScheduledPauseIcon
+                    width={16}
+                    height={16}
+                    stroke="#494F5A"
+                    color="#494F5A"
+                  />
+                  <Text allowFontScaling={false} style={styles.heroPillText}>
+                    Scheduled Pause
+                  </Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.heroPill}
-                onPress={() => ongoingAppts.length > 0 && handleStatusUpdate(ongoingAppts[0].id, 'skipped')}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.heroPillText}>Skip</Text>
-                <SkipIcon width={16} height={16} fill={colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
-          )}
+                <TouchableOpacity
+                  style={styles.heroPill}
+                  onPress={() =>
+                    ongoingAppts.length > 0 &&
+                    handleStatusUpdate(ongoingAppts[0].id, 'skipped')
+                  }
+                  activeOpacity={0.8}
+                >
+                  <Text allowFontScaling={false} style={styles.heroPillText}>
+                    Skip
+                  </Text>
+                  <SkipIcon
+                    width={16}
+                    height={16}
+                    stroke="#494F5A"
+                    color="#494F5A"
+                  />
+                </TouchableOpacity>
+              </View>
 
-          {/* Next Token CTA */}
-          {selectedSchedule && pendingAppts.length > 0 && (
-            <TouchableOpacity style={styles.nextTokenBtn} onPress={handleNextToken} activeOpacity={0.85}>
-              <Text style={styles.nextTokenText}>Next Token</Text>
-              <RightArrowIcon width={16} height={16} fill={colors.white} />
-            </TouchableOpacity>
+              {/* Next Token CTA */}
+              <TouchableOpacity
+                style={styles.nextTokenBtn}
+                onPress={handleNextToken}
+                activeOpacity={0.85}
+              >
+                <Text allowFontScaling={false} style={styles.nextTokenText}>
+                  Next token
+                </Text>
+                <RightArrowIcon width={16} height={16} stroke={colors.white} />
+              </TouchableOpacity>
+            </>
           )}
         </View>
       )}
@@ -787,8 +1001,13 @@ const QueueScreen: React.FC = () => {
       {activePauses.length > 0 && (
         <View style={styles.pauseBanner}>
           <View style={styles.pauseItemLeft}>
-            <InstantPauseIcon width={16} height={16} fill={colors.warning} />
-            <Text style={styles.pauseText}>
+            <InstantPauseIcon
+              width={16}
+              height={16}
+              stroke={colors.warning}
+              color={colors.warning}
+            />
+            <Text allowFontScaling={false} style={styles.pauseText}>
               Queue paused until {formatTo12h(activePauses[0].stopTime)}
             </Text>
           </View>
@@ -797,7 +1016,9 @@ const QueueScreen: React.FC = () => {
             onPress={() => handleCancelPause(activePauses[0].id)}
             activeOpacity={0.8}
           >
-            <Text style={styles.resumeBtnText}>Resume Queue</Text>
+            <Text allowFontScaling={false} style={styles.resumeBtnText}>
+              Resume Queue
+            </Text>
           </TouchableOpacity>
         </View>
       )}
@@ -806,38 +1027,54 @@ const QueueScreen: React.FC = () => {
       {loadingSchedules ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Loading schedules...</Text>
+          <Text allowFontScaling={false} style={styles.loadingText}>
+            Loading schedules...
+          </Text>
         </View>
       ) : schedules.length === 0 ? (
         <ScrollView
           contentContainerStyle={styles.centered}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         >
           <View style={styles.emptyCircle}>
-            <Text style={styles.emptyIcon}>📅</Text>
+            <Text allowFontScaling={false} style={styles.emptyIcon}>
+              📅
+            </Text>
           </View>
-          <Text style={styles.emptyTitle}>No Schedule Today</Text>
-          <Text style={styles.emptySubtitle}>
+          <Text allowFontScaling={false} style={styles.emptyTitle}>
+            No Schedule Today
+          </Text>
+          <Text allowFontScaling={false} style={styles.emptySubtitle}>
             {currentDoctor?.name
-              ? `Dr. ${currentDoctor.name} has no consultation sessions scheduled for today.`
+              ? `${currentDoctor.name} has no consultation sessions scheduled for today.`
               : 'No doctor schedule found for today.'}
           </Text>
         </ScrollView>
       ) : loadingQueue && displayList.length === 0 ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Syncing queue data...</Text>
+          <Text allowFontScaling={false} style={styles.loadingText}>
+            Syncing queue data...
+          </Text>
         </View>
       ) : displayList.length === 0 ? (
         <ScrollView
           contentContainerStyle={styles.centered}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         >
           <View style={styles.emptyCircle}>
-            <Text style={styles.emptyIcon}>🎉</Text>
+            <Text allowFontScaling={false} style={styles.emptyIcon}>
+              🎉
+            </Text>
           </View>
-          <Text style={styles.emptyTitle}>Queue is Empty</Text>
-          <Text style={styles.emptySubtitle}>
+          <Text allowFontScaling={false} style={styles.emptyTitle}>
+            Queue is Empty
+          </Text>
+          <Text allowFontScaling={false} style={styles.emptySubtitle}>
             {'All patients have been consulted or no appointments booked yet.'}
           </Text>
         </ScrollView>
@@ -870,15 +1107,26 @@ const QueueScreen: React.FC = () => {
           <View style={styles.modalCard}>
             <View style={styles.modalHeader}>
               <View style={styles.modalIconWrap}>
-                <InstantPauseIcon width={20} height={20} fill={colors.warning} />
+                <InstantPauseIcon
+                  width={20}
+                  height={20}
+                  stroke={colors.warning}
+                  color={colors.warning}
+                />
               </View>
               <View>
-                <Text style={styles.modalTitle}>Pause Consultation</Text>
-                <Text style={styles.modalSubtitle}>Patients in queue will be notified</Text>
+                <Text allowFontScaling={false} style={styles.modalTitle}>
+                  Pause Consultation
+                </Text>
+                <Text allowFontScaling={false} style={styles.modalSubtitle}>
+                  Patients in queue will be notified
+                </Text>
               </View>
             </View>
 
-            <Text style={styles.modalSectionLabel}>QUICK PAUSE</Text>
+            <Text allowFontScaling={false} style={styles.modalSectionLabel}>
+              QUICK PAUSE
+            </Text>
             <View style={styles.quickPauseRow}>
               {[15, 30, 45, 60].map(mins => (
                 <TouchableOpacity
@@ -888,13 +1136,21 @@ const QueueScreen: React.FC = () => {
                   disabled={pauseSubmitting}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.quickPauseBtnText}>+{mins}m</Text>
+                  <Text
+                    allowFontScaling={false}
+                    style={styles.quickPauseBtnText}
+                  >
+                    +{mins}m
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
 
-            <Text style={styles.modalSectionLabel}>OR CUSTOM STOP TIME</Text>
+            <Text allowFontScaling={false} style={styles.modalSectionLabel}>
+              OR CUSTOM STOP TIME
+            </Text>
             <TextInput
+              allowFontScaling={false}
               style={styles.modalInput}
               placeholder="e.g. 14:30"
               placeholderTextColor={colors.placeholder}
@@ -909,11 +1165,16 @@ const QueueScreen: React.FC = () => {
                 onPress={() => setShowPauseModal(false)}
                 disabled={pauseSubmitting}
               >
-                <Text style={styles.modalCancelText}>Cancel</Text>
+                <Text allowFontScaling={false} style={styles.modalCancelText}>
+                  Cancel
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.modalSubmitBtn, !customStopTime && { opacity: 0.6 }]}
+                style={[
+                  styles.modalSubmitBtn,
+                  !customStopTime && { opacity: 0.6 },
+                ]}
                 onPress={() => handlePauseSubmit(customStopTime)}
                 disabled={!customStopTime || pauseSubmitting}
                 activeOpacity={0.85}
@@ -921,7 +1182,9 @@ const QueueScreen: React.FC = () => {
                 {pauseSubmitting ? (
                   <ActivityIndicator size="small" color={colors.white} />
                 ) : (
-                  <Text style={styles.modalSubmitText}>Confirm Pause</Text>
+                  <Text allowFontScaling={false} style={styles.modalSubmitText}>
+                    Confirm Pause
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -929,13 +1192,13 @@ const QueueScreen: React.FC = () => {
         </View>
       </Modal>
     </SafeAreaView>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: colors.pageBg,
+    backgroundColor: '#F5F5F6',
   },
   centered: {
     flex: 1,
@@ -994,7 +1257,7 @@ const styles = StyleSheet.create({
 
   // Doctor Tabs
   doctorTabsWrap: {
-    backgroundColor: colors.white,
+    backgroundColor: '#F5F5F6',
     borderBottomWidth: 1,
     borderBottomColor: '#EAECF0',
   },
@@ -1006,14 +1269,14 @@ const styles = StyleSheet.create({
   doctorTab: {
     paddingVertical: SIZE(7),
     paddingHorizontal: SIZE(12),
-    borderRadius: radius.full,
+    borderRadius: SIZE(4),
     backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: '#D0D5DD',
+    borderColor: colors.white,
   },
   doctorTabActive: {
     borderColor: colors.primary,
-    backgroundColor: colors.white,
+    backgroundColor: '#E9F2FF',
   },
   doctorTabText: {
     fontSize: SIZE(13),
@@ -1131,7 +1394,7 @@ const styles = StyleSheet.create({
   heroPillText: {
     fontSize: SIZE(13),
     fontFamily: fonts.medium,
-    color: colors.textSecondary,
+    color: '#32363E',
   },
   heroPillTextActive: {
     color: colors.white,
@@ -1142,6 +1405,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: SIZE(8),
+    width: '100%',
     paddingVertical: SIZE(14),
     borderRadius: radius.md,
     backgroundColor: '#16A34A',
@@ -1458,6 +1722,6 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontFamily: fonts.bold,
   },
-})
+});
 
-export default QueueScreen
+export default QueueScreen;

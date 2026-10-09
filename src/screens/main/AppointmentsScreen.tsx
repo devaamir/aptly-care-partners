@@ -698,18 +698,28 @@ const AppointmentsScreen: React.FC = () => {
           <View style={styles.avatarWrap}>
             <Image source={userProfileImg} style={styles.patientAvatar} />
             <View style={styles.tokenBadge}>
-              <Text style={styles.tokenBadgeText}>#{item.tokenNumber}</Text>
+              <Text allowFontScaling={false} style={styles.tokenBadgeText}>
+                #{item.tokenNumber}
+              </Text>
             </View>
           </View>
 
           <View style={styles.patientMetaCol}>
             <View style={styles.patientNameRow}>
-              <Text style={styles.patientName} numberOfLines={1}>
+              <Text
+                allowFontScaling={false}
+                style={styles.patientName}
+                numberOfLines={1}
+              >
                 {item.patient?.name || 'Unnamed Patient'}
               </Text>
             </View>
             <View style={styles.basicMetaRow}>
-              <Text style={styles.basicDoctorText} numberOfLines={1}>
+              <Text
+                allowFontScaling={false}
+                style={styles.basicDoctorText}
+                numberOfLines={1}
+              >
                 Dr. {item.doctor?.name || 'General Physician'}
               </Text>
               <View style={styles.metaDot} />
@@ -719,7 +729,7 @@ const AppointmentsScreen: React.FC = () => {
                   height={SIZE(11)}
                   stroke={colors.textMuted}
                 />
-                <Text style={styles.basicDateText}>
+                <Text allowFontScaling={false} style={styles.basicDateText}>
                   {formatDate(item.appointmentDate)}
                 </Text>
               </View>
@@ -752,8 +762,13 @@ const AppointmentsScreen: React.FC = () => {
             <View style={styles.infoBox}>
               {/* Patient Additional Info */}
               <View style={styles.expandedRow}>
-                <Text style={styles.infoLabel}>Patient Details</Text>
-                <Text style={styles.expandedPatientText}>
+                <Text allowFontScaling={false} style={styles.infoLabel}>
+                  Patient Details
+                </Text>
+                <Text
+                  allowFontScaling={false}
+                  style={styles.expandedPatientText}
+                >
                   {getPatientSubtitle(item.patient)}
                 </Text>
               </View>
@@ -762,11 +777,17 @@ const AppointmentsScreen: React.FC = () => {
 
               {/* Doctor Row with Specialty */}
               <View style={styles.doctorRow}>
-                <Text style={styles.infoLabel}>Doctor</Text>
-                <Text style={styles.doctorValue} numberOfLines={1}>
+                <Text allowFontScaling={false} style={styles.infoLabel}>
+                  Doctor
+                </Text>
+                <Text
+                  allowFontScaling={false}
+                  style={styles.doctorValue}
+                  numberOfLines={1}
+                >
                   Dr. {item.doctor?.name || 'General Physician'}
                   {item.doctor?.specialties?.[0]?.name ? (
-                    <Text style={styles.specialtyTag}>
+                    <Text allowFontScaling={false} style={styles.specialtyTag}>
                       {' '}
                       • {item.doctor.specialties[0].name}
                     </Text>
@@ -784,7 +805,7 @@ const AppointmentsScreen: React.FC = () => {
                     height={SIZE(13)}
                     stroke={colors.textSecondary}
                   />
-                  <Text style={styles.metaText}>
+                  <Text allowFontScaling={false} style={styles.metaText}>
                     {to12h(item.schedule?.startTime)} -{' '}
                     {to12h(item.schedule?.stopTime)}
                   </Text>
@@ -793,7 +814,9 @@ const AppointmentsScreen: React.FC = () => {
                 {item.referenceId ? (
                   <>
                     <View style={styles.metaDot} />
-                    <Text style={styles.refText}>Ref #{item.referenceId}</Text>
+                    <Text allowFontScaling={false} style={styles.refText}>
+                      Ref #{item.referenceId}
+                    </Text>
                   </>
                 ) : null}
               </View>
@@ -811,7 +834,10 @@ const AppointmentsScreen: React.FC = () => {
                   {isItemLoading ? (
                     <ActivityIndicator size="small" color={colors.danger} />
                   ) : (
-                    <Text style={styles.actionCancelText}>
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.actionCancelText}
+                    >
                       Cancel Consultation
                     </Text>
                   )}
@@ -830,7 +856,12 @@ const AppointmentsScreen: React.FC = () => {
                   {isItemLoading ? (
                     <ActivityIndicator size="small" color={colors.white} />
                   ) : (
-                    <Text style={styles.actionDoneText}>Mark Complete</Text>
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.actionDoneText}
+                    >
+                      Mark Complete
+                    </Text>
                   )}
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -839,7 +870,9 @@ const AppointmentsScreen: React.FC = () => {
                   disabled={isItemLoading}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.actionSkipText}>Skip Token</Text>
+                  <Text allowFontScaling={false} style={styles.actionSkipText}>
+                    Skip Token
+                  </Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -854,7 +887,9 @@ const AppointmentsScreen: React.FC = () => {
       {/* Flat White Header Bar */}
       <View style={styles.header}>
         <View style={styles.headerTopRow}>
-          <Text style={styles.headerTitle}>Appointments</Text>
+          <Text allowFontScaling={false} style={styles.headerTitle}>
+            Appointments
+          </Text>
         </View>
       </View>
 
@@ -868,6 +903,7 @@ const AppointmentsScreen: React.FC = () => {
               stroke={colors.textMuted}
             />
             <TextInput
+              allowFontScaling={false}
               style={styles.searchInput}
               value={search}
               onChangeText={setSearch}
@@ -880,7 +916,9 @@ const AppointmentsScreen: React.FC = () => {
                 onPress={() => setSearch('')}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Text style={styles.clearSearchText}>✕</Text>
+                <Text allowFontScaling={false} style={styles.clearSearchText}>
+                  ✕
+                </Text>
               </TouchableOpacity>
             )}
           </View>
@@ -976,7 +1014,9 @@ const AppointmentsScreen: React.FC = () => {
       {loading ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Loading appointments...</Text>
+          <Text allowFontScaling={false} style={styles.loadingText}>
+            Loading appointments...
+          </Text>
         </View>
       ) : filtered.length === 0 ? (
         <View style={styles.centered}>
@@ -987,8 +1027,10 @@ const AppointmentsScreen: React.FC = () => {
               stroke={colors.textMuted}
             />
           </View>
-          <Text style={styles.emptyTitle}>No appointments found</Text>
-          <Text style={styles.emptySubtitle}>
+          <Text allowFontScaling={false} style={styles.emptyTitle}>
+            No appointments found
+          </Text>
+          <Text allowFontScaling={false} style={styles.emptySubtitle}>
             {search || statusFilter || dateFilter !== 'Today'
               ? 'Try adjusting your date selection, search query, or status filter.'
               : 'There are no appointments registered for today.'}
@@ -1005,7 +1047,9 @@ const AppointmentsScreen: React.FC = () => {
               }}
               activeOpacity={0.7}
             >
-              <Text style={styles.resetButtonText}>Reset to Today</Text>
+              <Text allowFontScaling={false} style={styles.resetButtonText}>
+                Reset to Today
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -1036,7 +1080,9 @@ const AppointmentsScreen: React.FC = () => {
               </View>
             ) : (
               <View style={styles.listFooter}>
-                <Text style={styles.listFooterText}>End of appointments</Text>
+                <Text allowFontScaling={false} style={styles.listFooterText}>
+                  End of appointments
+                </Text>
               </View>
             )
           }
@@ -1054,8 +1100,10 @@ const AppointmentsScreen: React.FC = () => {
           <View style={styles.rangeDialogBox}>
             <View style={styles.dialogHeader}>
               <View>
-                <Text style={styles.dialogTitle}>Select Date Range</Text>
-                <Text style={styles.dialogSubtitle}>
+                <Text allowFontScaling={false} style={styles.dialogTitle}>
+                  Select Date Range
+                </Text>
+                <Text allowFontScaling={false} style={styles.dialogSubtitle}>
                   Filter appointments across days
                 </Text>
               </View>
@@ -1063,38 +1111,51 @@ const AppointmentsScreen: React.FC = () => {
                 onPress={() => setShowRangeModal(false)}
                 style={styles.dialogCloseBtn}
               >
-                <Text style={styles.dialogCloseText}>✕</Text>
+                <Text allowFontScaling={false} style={styles.dialogCloseText}>
+                  ✕
+                </Text>
               </TouchableOpacity>
             </View>
 
             {/* Quick Presets */}
-            <Text style={styles.presetLabel}>Quick Presets</Text>
+            <Text allowFontScaling={false} style={styles.presetLabel}>
+              Quick Presets
+            </Text>
             <View style={styles.presetsRow}>
               <TouchableOpacity
                 style={styles.presetChip}
                 onPress={() => handlePresetRange(7)}
               >
-                <Text style={styles.presetChipText}>Next 7 Days</Text>
+                <Text allowFontScaling={false} style={styles.presetChipText}>
+                  Next 7 Days
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.presetChip}
                 onPress={() => handlePresetRange(14)}
               >
-                <Text style={styles.presetChipText}>Next 14 Days</Text>
+                <Text allowFontScaling={false} style={styles.presetChipText}>
+                  Next 14 Days
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.presetChip}
                 onPress={() => handlePresetRange(30)}
               >
-                <Text style={styles.presetChipText}>Next 30 Days</Text>
+                <Text allowFontScaling={false} style={styles.presetChipText}>
+                  Next 30 Days
+                </Text>
               </TouchableOpacity>
             </View>
 
             {/* Manual Date Inputs */}
             <View style={styles.customDateInputsRow}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.inputLabel}>From Date</Text>
+                <Text allowFontScaling={false} style={styles.inputLabel}>
+                  From Date
+                </Text>
                 <TextInput
+                  allowFontScaling={false}
                   style={styles.modalInput}
                   value={customStartInput}
                   onChangeText={setCustomStartInput}
@@ -1103,8 +1164,11 @@ const AppointmentsScreen: React.FC = () => {
                 />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.inputLabel}>To Date</Text>
+                <Text allowFontScaling={false} style={styles.inputLabel}>
+                  To Date
+                </Text>
                 <TextInput
+                  allowFontScaling={false}
                   style={styles.modalInput}
                   value={customEndInput}
                   onChangeText={setCustomEndInput}
@@ -1119,13 +1183,17 @@ const AppointmentsScreen: React.FC = () => {
                 style={styles.dialogCancelBtn}
                 onPress={() => setShowRangeModal(false)}
               >
-                <Text style={styles.dialogCancelText}>Cancel</Text>
+                <Text allowFontScaling={false} style={styles.dialogCancelText}>
+                  Cancel
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.dialogApplyBtn}
                 onPress={handleApplyRange}
               >
-                <Text style={styles.dialogApplyText}>Apply Range</Text>
+                <Text allowFontScaling={false} style={styles.dialogApplyText}>
+                  Apply Range
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1145,7 +1213,9 @@ const AppointmentsScreen: React.FC = () => {
           onPress={() => setShowStatusModal(false)}
         >
           <View style={styles.statusDialogBox}>
-            <Text style={styles.dialogTitle}>Filter by Status</Text>
+            <Text allowFontScaling={false} style={styles.dialogTitle}>
+              Filter by Status
+            </Text>
             <View style={styles.statusOptionsList}>
               {STATUS_OPTIONS.map(opt => {
                 const isSelected = statusFilter === opt.value;
@@ -1217,12 +1287,12 @@ const AppointmentsScreen: React.FC = () => {
             {/* Modal Header */}
             <View style={styles.modalHeader}>
               <View>
-                <Text style={styles.modalTitle}>
+                <Text allowFontScaling={false} style={styles.modalTitle}>
                   {createdAppointment
                     ? 'Appointment Booked'
                     : 'Schedule Appointment'}
                 </Text>
-                <Text style={styles.modalSubtitle}>
+                <Text allowFontScaling={false} style={styles.modalSubtitle}>
                   {createdAppointment
                     ? 'Consultation token generated successfully'
                     : 'Assign patient token and doctor session'}
@@ -1234,9 +1304,16 @@ const AppointmentsScreen: React.FC = () => {
                   resetBookingForm();
                 }}
                 style={styles.modalCloseBtn}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                hitSlop={{
+                  top: SIZE(10),
+                  bottom: SIZE(10),
+                  left: SIZE(10),
+                  right: SIZE(10),
+                }}
               >
-                <Text style={styles.modalCloseText}>✕</Text>
+                <Text allowFontScaling={false} style={styles.modalCloseText}>
+                  ✕
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -1249,12 +1326,17 @@ const AppointmentsScreen: React.FC = () => {
               >
                 {/* Token Hero Card */}
                 <View style={styles.tokenHeroCard}>
-                  <Text style={styles.tokenHeroLabel}>TOKEN NUMBER</Text>
-                  <Text style={styles.tokenHeroNumber}>
+                  <Text allowFontScaling={false} style={styles.tokenHeroLabel}>
+                    TOKEN NUMBER
+                  </Text>
+                  <Text allowFontScaling={false} style={styles.tokenHeroNumber}>
                     #{createdAppointment.tokenNumber}
                   </Text>
                   <View style={styles.tokenHeroBadge}>
-                    <Text style={styles.tokenHeroBadgeText}>
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.tokenHeroBadgeText}
+                    >
                       Booked & Confirmed
                     </Text>
                   </View>
@@ -1262,7 +1344,10 @@ const AppointmentsScreen: React.FC = () => {
 
                 {/* Patient Card */}
                 <View style={styles.confirmSectionCard}>
-                  <Text style={styles.confirmSectionTitle}>
+                  <Text
+                    allowFontScaling={false}
+                    style={styles.confirmSectionTitle}
+                  >
                     PATIENT DETAILS
                   </Text>
                   <View style={styles.confirmProfileRow}>
@@ -1271,10 +1356,16 @@ const AppointmentsScreen: React.FC = () => {
                       style={styles.confirmProfileAvatar}
                     />
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.confirmProfileName}>
+                      <Text
+                        allowFontScaling={false}
+                        style={styles.confirmProfileName}
+                      >
                         {createdAppointment.patient?.name || 'Patient'}
                       </Text>
-                      <Text style={styles.confirmProfileMeta}>
+                      <Text
+                        allowFontScaling={false}
+                        style={styles.confirmProfileMeta}
+                      >
                         +91 {createdAppointment.patient?.phoneNumber || phone} •{' '}
                         {createdAppointment.patient?.gender || patientGender}
                       </Text>
@@ -1284,7 +1375,10 @@ const AppointmentsScreen: React.FC = () => {
 
                 {/* Doctor Card */}
                 <View style={styles.confirmSectionCard}>
-                  <Text style={styles.confirmSectionTitle}>
+                  <Text
+                    allowFontScaling={false}
+                    style={styles.confirmSectionTitle}
+                  >
                     ASSIGNED DOCTOR
                   </Text>
                   <View style={styles.confirmProfileRow}>
@@ -1293,10 +1387,16 @@ const AppointmentsScreen: React.FC = () => {
                       style={styles.confirmProfileAvatar}
                     />
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.confirmProfileName}>
-                        Dr. {createdAppointment.doctor?.name || 'Doctor'}
+                      <Text
+                        allowFontScaling={false}
+                        style={styles.confirmProfileName}
+                      >
+                        {createdAppointment.doctor?.name || 'Doctor'}
                       </Text>
-                      <Text style={styles.confirmProfileMeta}>
+                      <Text
+                        allowFontScaling={false}
+                        style={styles.confirmProfileMeta}
+                      >
                         {createdAppointment.doctor?.specialties?.[0]?.name ||
                           'Specialist Consultant'}
                       </Text>
@@ -1307,25 +1407,47 @@ const AppointmentsScreen: React.FC = () => {
                 {/* Booking Summary Box */}
                 <View style={styles.confirmDetailsBox}>
                   <View style={styles.confirmDetailRow}>
-                    <Text style={styles.confirmDetailLabel}>
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.confirmDetailLabel}
+                    >
                       Appointment Date
                     </Text>
-                    <Text style={styles.confirmDetailValue}>
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.confirmDetailValue}
+                    >
                       {formatDate(createdAppointment.appointmentDate)}
                     </Text>
                   </View>
                   <View style={styles.confirmDetailDivider} />
                   <View style={styles.confirmDetailRow}>
-                    <Text style={styles.confirmDetailLabel}>Session Time</Text>
-                    <Text style={styles.confirmDetailValue}>
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.confirmDetailLabel}
+                    >
+                      Session Time
+                    </Text>
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.confirmDetailValue}
+                    >
                       {to12h(createdAppointment.schedule?.startTime)} –{' '}
                       {to12h(createdAppointment.schedule?.stopTime)}
                     </Text>
                   </View>
                   <View style={styles.confirmDetailDivider} />
                   <View style={styles.confirmDetailRow}>
-                    <Text style={styles.confirmDetailLabel}>Reference ID</Text>
-                    <Text style={styles.confirmDetailValue}>
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.confirmDetailLabel}
+                    >
+                      Reference ID
+                    </Text>
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.confirmDetailValue}
+                    >
                       #{createdAppointment.referenceId}
                     </Text>
                   </View>
@@ -1335,7 +1457,7 @@ const AppointmentsScreen: React.FC = () => {
                 <View
                   style={[
                     styles.confirmActionsRow,
-                    { paddingBottom: Math.max(insets.bottom, 16) },
+                    { paddingBottom: Math.max(insets.bottom, SIZE(16)) },
                   ]}
                 >
                   <TouchableOpacity
@@ -1343,7 +1465,12 @@ const AppointmentsScreen: React.FC = () => {
                     onPress={() => resetBookingForm(true)}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.bookAnotherBtnText}>Book Another</Text>
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.bookAnotherBtnText}
+                    >
+                      Book Another
+                    </Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -1354,7 +1481,12 @@ const AppointmentsScreen: React.FC = () => {
                     }}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.confirmDoneBtnText}>Done</Text>
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.confirmDoneBtnText}
+                    >
+                      Done
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </ScrollView>
@@ -1369,7 +1501,9 @@ const AppointmentsScreen: React.FC = () => {
                 >
                   {bookingError ? (
                     <View style={styles.errorBanner}>
-                      <Text style={styles.errorText}>{bookingError}</Text>
+                      <Text allowFontScaling={false} style={styles.errorText}>
+                        {bookingError}
+                      </Text>
                     </View>
                   ) : null}
 
@@ -1377,22 +1511,41 @@ const AppointmentsScreen: React.FC = () => {
                   <View style={styles.formCard}>
                     <View style={styles.formCardHeader}>
                       <View style={styles.stepNumBadge}>
-                        <Text style={styles.stepNumText}>1</Text>
+                        <Text
+                          allowFontScaling={false}
+                          style={styles.stepNumText}
+                        >
+                          1
+                        </Text>
                       </View>
-                      <Text style={styles.formCardTitle}>
+                      <Text
+                        allowFontScaling={false}
+                        style={styles.formCardTitle}
+                      >
                         Patient Information
                       </Text>
                     </View>
 
-                    <Text style={styles.inputLabel}>
+                    <Text allowFontScaling={false} style={styles.inputLabel}>
                       Mobile Number{' '}
-                      <Text style={styles.requiredAsterisk}>*</Text>
+                      <Text
+                        allowFontScaling={false}
+                        style={styles.requiredAsterisk}
+                      >
+                        *
+                      </Text>
                     </Text>
                     <View style={styles.phoneInputWrap}>
                       <View style={styles.phonePrefixBox}>
-                        <Text style={styles.phonePrefixText}>+91</Text>
+                        <Text
+                          allowFontScaling={false}
+                          style={styles.phonePrefixText}
+                        >
+                          +91
+                        </Text>
                       </View>
                       <TextInput
+                        allowFontScaling={false}
                         style={styles.phoneInput}
                         value={phone}
                         onChangeText={handlePhoneChange}
@@ -1417,7 +1570,12 @@ const AppointmentsScreen: React.FC = () => {
                             setPatientAge('');
                           }}
                         >
-                          <Text style={styles.clearSearchText}>✕</Text>
+                          <Text
+                            allowFontScaling={false}
+                            style={styles.clearSearchText}
+                          >
+                            ✕
+                          </Text>
                         </TouchableOpacity>
                       ) : null}
                     </View>
@@ -1431,16 +1589,25 @@ const AppointmentsScreen: React.FC = () => {
                         />
                         <View style={{ flex: 1 }}>
                           <View style={styles.matchedHeaderRow}>
-                            <Text style={styles.matchedPatientName}>
+                            <Text
+                              allowFontScaling={false}
+                              style={styles.matchedPatientName}
+                            >
                               {foundPatient.name}
                             </Text>
                             <View style={styles.matchedTag}>
-                              <Text style={styles.matchedTagText}>
+                              <Text
+                                allowFontScaling={false}
+                                style={styles.matchedTagText}
+                              >
                                 Existing Patient
                               </Text>
                             </View>
                           </View>
-                          <Text style={styles.matchedPatientMeta}>
+                          <Text
+                            allowFontScaling={false}
+                            style={styles.matchedPatientMeta}
+                          >
                             {foundPatient.gender}
                             {getAgeFromDob(foundPatient.dateOfBirth)
                               ? `  •  ${getAgeFromDob(
@@ -1456,9 +1623,15 @@ const AppointmentsScreen: React.FC = () => {
                           style={[styles.inputLabel, { marginTop: SIZE(12) }]}
                         >
                           Patient Full Name{' '}
-                          <Text style={styles.requiredAsterisk}>*</Text>
+                          <Text
+                            allowFontScaling={false}
+                            style={styles.requiredAsterisk}
+                          >
+                            *
+                          </Text>
                         </Text>
                         <TextInput
+                          allowFontScaling={false}
                           style={styles.modalInput}
                           value={patientName}
                           onChangeText={setPatientName}
@@ -1501,6 +1674,7 @@ const AppointmentsScreen: React.FC = () => {
                           Age
                         </Text>
                         <TextInput
+                          allowFontScaling={false}
                           style={styles.modalInput}
                           value={patientAge}
                           onChangeText={t =>
@@ -1519,9 +1693,19 @@ const AppointmentsScreen: React.FC = () => {
                   <View style={styles.formCard}>
                     <View style={styles.formCardHeader}>
                       <View style={styles.stepNumBadge}>
-                        <Text style={styles.stepNumText}>2</Text>
+                        <Text
+                          allowFontScaling={false}
+                          style={styles.stepNumText}
+                        >
+                          2
+                        </Text>
                       </View>
-                      <Text style={styles.formCardTitle}>Assigned Doctor</Text>
+                      <Text
+                        allowFontScaling={false}
+                        style={styles.formCardTitle}
+                      >
+                        Assigned Doctor
+                      </Text>
                     </View>
 
                     {isDoctor && activeDoctor ? (
@@ -1531,10 +1715,16 @@ const AppointmentsScreen: React.FC = () => {
                           style={styles.doctorCardAvatar}
                         />
                         <View style={{ flex: 1 }}>
-                          <Text style={styles.doctorCardName}>
-                            Dr. {activeDoctor.name}
+                          <Text
+                            allowFontScaling={false}
+                            style={styles.doctorCardName}
+                          >
+                            {activeDoctor.name}
                           </Text>
-                          <Text style={styles.doctorCardSpecialty}>
+                          <Text
+                            allowFontScaling={false}
+                            style={styles.doctorCardSpecialty}
+                          >
                             Consultant • Current Duty
                           </Text>
                         </View>
@@ -1568,7 +1758,7 @@ const AppointmentsScreen: React.FC = () => {
                                 ]}
                                 numberOfLines={1}
                               >
-                                Dr. {doc.name}
+                                {doc.name}
                               </Text>
                               <Text
                                 style={[
@@ -1591,9 +1781,17 @@ const AppointmentsScreen: React.FC = () => {
                   <View style={styles.formCard}>
                     <View style={styles.formCardHeader}>
                       <View style={styles.stepNumBadge}>
-                        <Text style={styles.stepNumText}>3</Text>
+                        <Text
+                          allowFontScaling={false}
+                          style={styles.stepNumText}
+                        >
+                          3
+                        </Text>
                       </View>
-                      <Text style={styles.formCardTitle}>
+                      <Text
+                        allowFontScaling={false}
+                        style={styles.formCardTitle}
+                      >
                         Consultation Date
                       </Text>
                     </View>
@@ -1641,9 +1839,17 @@ const AppointmentsScreen: React.FC = () => {
                   <View style={styles.formCard}>
                     <View style={styles.formCardHeader}>
                       <View style={styles.stepNumBadge}>
-                        <Text style={styles.stepNumText}>4</Text>
+                        <Text
+                          allowFontScaling={false}
+                          style={styles.stepNumText}
+                        >
+                          4
+                        </Text>
                       </View>
-                      <Text style={styles.formCardTitle}>
+                      <Text
+                        allowFontScaling={false}
+                        style={styles.formCardTitle}
+                      >
                         Available Session
                       </Text>
                     </View>
@@ -1654,13 +1860,19 @@ const AppointmentsScreen: React.FC = () => {
                           size="small"
                           color={colors.primary}
                         />
-                        <Text style={styles.loadingSchedulesText}>
+                        <Text
+                          allowFontScaling={false}
+                          style={styles.loadingSchedulesText}
+                        >
                           Checking session token availability...
                         </Text>
                       </View>
                     ) : schedules.length === 0 ? (
                       <View style={styles.noSchedulesBox}>
-                        <Text style={styles.noSchedulesText}>
+                        <Text
+                          allowFontScaling={false}
+                          style={styles.noSchedulesText}
+                        >
                           No active consultation sessions scheduled for this
                           doctor on the selected date.
                         </Text>
@@ -1748,7 +1960,10 @@ const AppointmentsScreen: React.FC = () => {
                                 </View>
                               </View>
 
-                              <Text style={styles.scheduleSubText}>
+                              <Text
+                                allowFontScaling={false}
+                                style={styles.scheduleSubText}
+                              >
                                 Session Token Limit: {sch.tokenLimit} tokens
                               </Text>
                             </TouchableOpacity>
@@ -1778,7 +1993,10 @@ const AppointmentsScreen: React.FC = () => {
                     {bookingLoading ? (
                       <ActivityIndicator size="small" color={colors.white} />
                     ) : (
-                      <Text style={styles.bookSubmitBtnText}>
+                      <Text
+                        allowFontScaling={false}
+                        style={styles.bookSubmitBtnText}
+                      >
                         Confirm & Book Appointment
                       </Text>
                     )}
@@ -2425,12 +2643,12 @@ const styles = StyleSheet.create({
   sheetContainer: {
     height: '88%',
     backgroundColor: colors.pageBg,
-    borderTopLeftRadius: SIZE(20),
-    borderTopRightRadius: SIZE(20),
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: colors.border,
     overflow: 'hidden',
   },
   sheetHandleWrap: {
@@ -2443,7 +2661,7 @@ const styles = StyleSheet.create({
     width: SIZE(38),
     height: SIZE(4),
     borderRadius: SIZE(2),
-    backgroundColor: '#CBD5E1',
+    backgroundColor: colors.borderHover,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -2454,7 +2672,7 @@ const styles = StyleSheet.create({
     paddingBottom: SIZE(12),
     backgroundColor: colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#EAECF0',
+    borderBottomColor: colors.border,
   },
   modalTitle: {
     fontSize: SIZE(18),
@@ -2470,8 +2688,8 @@ const styles = StyleSheet.create({
   modalCloseBtn: {
     width: SIZE(32),
     height: SIZE(32),
-    borderRadius: SIZE(16),
-    backgroundColor: '#F1F4F9',
+    borderRadius: radius.full,
+    backgroundColor: colors.inputBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -2488,8 +2706,8 @@ const styles = StyleSheet.create({
   errorBanner: {
     backgroundColor: colors.dangerLight,
     borderWidth: 1,
-    borderColor: '#FECACA',
-    borderRadius: SIZE(10),
+    borderColor: colors.danger,
+    borderRadius: radius.md,
     padding: SIZE(12),
   },
   errorText: {
@@ -2500,9 +2718,9 @@ const styles = StyleSheet.create({
   // Form Cards
   formCard: {
     backgroundColor: colors.white,
-    borderRadius: SIZE(14),
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: colors.border,
     padding: SIZE(14),
   },
   formCardHeader: {
@@ -2517,7 +2735,7 @@ const styles = StyleSheet.create({
     borderRadius: SIZE(11),
     backgroundColor: colors.primaryLight,
     borderWidth: 1,
-    borderColor: '#D0E3FC',
+    borderColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -2544,17 +2762,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.inputBg,
-    borderRadius: SIZE(10),
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: colors.border,
     overflow: 'hidden',
   },
   phonePrefixBox: {
-    backgroundColor: '#F1F4F9',
+    backgroundColor: colors.inputBg,
     paddingHorizontal: SIZE(12),
     paddingVertical: SIZE(11),
     borderRightWidth: 1,
-    borderRightColor: '#EAECF0',
+    borderRightColor: colors.border,
   },
   phonePrefixText: {
     fontSize: SIZE(13),
@@ -2578,9 +2796,9 @@ const styles = StyleSheet.create({
   },
   modalInput: {
     backgroundColor: colors.inputBg,
-    borderRadius: SIZE(10),
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: colors.border,
     paddingHorizontal: SIZE(12),
     paddingVertical: SIZE(10),
     fontSize: SIZE(13),
@@ -2590,10 +2808,10 @@ const styles = StyleSheet.create({
   matchedPatientCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ECFDF5',
+    backgroundColor: colors.successLight,
     borderWidth: 1,
-    borderColor: '#A7F3D0',
-    borderRadius: SIZE(10),
+    borderColor: colors.success,
+    borderRadius: radius.md,
     padding: SIZE(10),
     marginTop: SIZE(10),
     gap: SIZE(10),
@@ -2603,7 +2821,7 @@ const styles = StyleSheet.create({
     height: SIZE(38),
     borderRadius: SIZE(19),
     borderWidth: 1,
-    borderColor: '#A7F3D0',
+    borderColor: colors.success,
   },
   matchedHeaderRow: {
     flexDirection: 'row',
@@ -2614,23 +2832,23 @@ const styles = StyleSheet.create({
   matchedPatientName: {
     fontSize: SIZE(13),
     fontFamily: fonts.bold,
-    color: '#065F46',
+    color: colors.textPrimary,
   },
   matchedTag: {
-    backgroundColor: '#D1FAE5',
+    backgroundColor: colors.white,
     paddingHorizontal: SIZE(6),
     paddingVertical: SIZE(2),
-    borderRadius: SIZE(4),
+    borderRadius: radius.sm,
   },
   matchedTagText: {
     fontSize: SIZE(10),
     fontFamily: fonts.bold,
-    color: '#047857',
+    color: colors.success,
   },
   matchedPatientMeta: {
     fontSize: SIZE(11),
     fontFamily: fonts.regular,
-    color: '#047857',
+    color: colors.textSecondary,
     marginTop: SIZE(2),
   },
   genderRow: {
@@ -2641,9 +2859,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: SIZE(9),
     alignItems: 'center',
-    borderRadius: SIZE(8),
+    borderRadius: radius.sm,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: colors.border,
     backgroundColor: colors.inputBg,
   },
   genderChipActive: {
@@ -2664,9 +2882,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.inputBg,
-    borderRadius: SIZE(10),
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: colors.border,
     padding: SIZE(10),
     gap: SIZE(10),
   },
@@ -2675,7 +2893,7 @@ const styles = StyleSheet.create({
     height: SIZE(40),
     borderRadius: SIZE(20),
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: colors.border,
   },
   doctorCardName: {
     fontSize: SIZE(14),
@@ -2694,9 +2912,9 @@ const styles = StyleSheet.create({
   },
   doctorSelectCard: {
     backgroundColor: colors.inputBg,
-    borderRadius: SIZE(12),
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: colors.border,
     padding: SIZE(10),
     alignItems: 'center',
     width: SIZE(120),
@@ -2711,7 +2929,7 @@ const styles = StyleSheet.create({
     borderRadius: SIZE(22),
     marginBottom: SIZE(6),
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: colors.border,
   },
   doctorSelectName: {
     fontSize: SIZE(12),
@@ -2739,9 +2957,9 @@ const styles = StyleSheet.create({
   },
   dateSelectCard: {
     backgroundColor: colors.inputBg,
-    borderRadius: SIZE(10),
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: colors.border,
     paddingVertical: SIZE(10),
     paddingHorizontal: SIZE(12),
     alignItems: 'center',
@@ -2776,9 +2994,9 @@ const styles = StyleSheet.create({
     gap: SIZE(8),
     padding: SIZE(14),
     backgroundColor: colors.inputBg,
-    borderRadius: SIZE(10),
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: colors.border,
   },
   loadingSchedulesText: {
     fontSize: SIZE(12),
@@ -2788,9 +3006,9 @@ const styles = StyleSheet.create({
   noSchedulesBox: {
     padding: SIZE(14),
     backgroundColor: colors.inputBg,
-    borderRadius: SIZE(10),
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: colors.border,
   },
   noSchedulesText: {
     fontSize: SIZE(12),
@@ -2803,9 +3021,9 @@ const styles = StyleSheet.create({
   },
   scheduleCard: {
     backgroundColor: colors.inputBg,
-    borderRadius: SIZE(10),
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: colors.border,
     padding: SIZE(12),
     gap: SIZE(6),
   },
@@ -2857,7 +3075,7 @@ const styles = StyleSheet.create({
   tokenPillTextWarning: {
     fontSize: SIZE(10),
     fontFamily: fonts.bold,
-    color: '#D97706',
+    color: colors.warning,
   },
   tokenPillFull: {
     backgroundColor: colors.dangerLight,
@@ -2878,11 +3096,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: SIZE(16),
     paddingVertical: SIZE(12),
     borderTopWidth: 1,
-    borderTopColor: '#EAECF0',
+    borderTopColor: colors.border,
   },
   bookSubmitBtn: {
     backgroundColor: colors.primary,
-    borderRadius: SIZE(10),
+    borderRadius: radius.md,
     paddingVertical: SIZE(13),
     alignItems: 'center',
     justifyContent: 'center',
@@ -2903,9 +3121,9 @@ const styles = StyleSheet.create({
   },
   tokenHeroCard: {
     backgroundColor: colors.white,
-    borderRadius: SIZE(18),
+    borderRadius: radius.xl,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: colors.border,
     paddingVertical: SIZE(24),
     paddingHorizontal: SIZE(16),
     alignItems: 'center',
@@ -2936,9 +3154,9 @@ const styles = StyleSheet.create({
   },
   confirmSectionCard: {
     backgroundColor: colors.white,
-    borderRadius: SIZE(14),
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: colors.border,
     padding: SIZE(14),
     gap: SIZE(10),
   },
@@ -2958,7 +3176,7 @@ const styles = StyleSheet.create({
     height: SIZE(44),
     borderRadius: SIZE(22),
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: colors.border,
   },
   confirmProfileName: {
     fontSize: SIZE(15),
@@ -2973,9 +3191,9 @@ const styles = StyleSheet.create({
   },
   confirmDetailsBox: {
     backgroundColor: colors.white,
-    borderRadius: SIZE(14),
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: colors.border,
     padding: SIZE(14),
     gap: SIZE(10),
   },
@@ -2996,7 +3214,7 @@ const styles = StyleSheet.create({
   },
   confirmDetailDivider: {
     height: 1,
-    backgroundColor: '#F1F4F9',
+    backgroundColor: colors.border,
   },
   confirmActionsRow: {
     flexDirection: 'row',
@@ -3006,9 +3224,9 @@ const styles = StyleSheet.create({
   bookAnotherBtn: {
     flex: 1,
     backgroundColor: colors.inputBg,
-    borderRadius: SIZE(10),
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: colors.border,
     paddingVertical: SIZE(13),
     alignItems: 'center',
     justifyContent: 'center',
@@ -3021,7 +3239,7 @@ const styles = StyleSheet.create({
   confirmDoneBtn: {
     flex: 1,
     backgroundColor: colors.primary,
-    borderRadius: SIZE(10),
+    borderRadius: radius.md,
     paddingVertical: SIZE(13),
     alignItems: 'center',
     justifyContent: 'center',

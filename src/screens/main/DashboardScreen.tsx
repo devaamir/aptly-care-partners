@@ -196,7 +196,9 @@ const DashboardScreen: React.FC = () => {
         >
           {error ? (
             <View style={styles.errorBox}>
-              <Text style={styles.errorText}>{error}</Text>
+              <Text allowFontScaling={false} style={styles.errorText}>
+                {error}
+              </Text>
             </View>
           ) : null}
 
@@ -230,14 +232,18 @@ const DashboardScreen: React.FC = () => {
             <View style={styles.heroTopRow}>
               <View style={styles.heroLiveBadge}>
                 <View style={styles.pulsingDot} />
-                <Text style={styles.heroLiveText}>TODAY'S OPERATIONS</Text>
+                <Text allowFontScaling={false} style={styles.heroLiveText}>
+                  TODAY'S OPERATIONS
+                </Text>
               </View>
               <TouchableOpacity
                 onPress={() => navigation.navigate('Queue')}
                 activeOpacity={0.7}
                 style={styles.heroActionBtn}
               >
-                <Text style={styles.heroActionText}>Live Queue</Text>
+                <Text allowFontScaling={false} style={styles.heroActionText}>
+                  Live Queue
+                </Text>
                 <RightArrowIcon
                   width={SIZE(10)}
                   height={SIZE(10)}
@@ -249,20 +255,33 @@ const DashboardScreen: React.FC = () => {
 
             <View style={styles.heroStatsRow}>
               <View style={styles.heroStatItem}>
-                <Text style={styles.heroStatValue}>{confirmedToday}</Text>
-                <Text style={styles.heroStatLabel}>Confirmed</Text>
+                <Text allowFontScaling={false} style={styles.heroStatValue}>
+                  {confirmedToday}
+                </Text>
+                <Text allowFontScaling={false} style={styles.heroStatLabel}>
+                  Confirmed
+                </Text>
               </View>
               <View style={styles.heroDivider} />
               <View style={styles.heroStatItem}>
-                <Text style={styles.heroStatValue}>{totalToday}</Text>
-                <Text style={styles.heroStatLabel}>Total Booked</Text>
+                <Text allowFontScaling={false} style={styles.heroStatValue}>
+                  {totalToday}
+                </Text>
+                <Text allowFontScaling={false} style={styles.heroStatLabel}>
+                  Total Booked
+                </Text>
               </View>
               <View style={styles.heroDivider} />
               <View style={styles.heroStatItem}>
-                <Text style={[styles.heroStatValue, styles.heroStatCancelled]}>
+                <Text
+                  allowFontScaling={false}
+                  style={[styles.heroStatValue, styles.heroStatCancelled]}
+                >
                   {cancelledToday}
                 </Text>
-                <Text style={styles.heroStatLabel}>Cancelled</Text>
+                <Text allowFontScaling={false} style={styles.heroStatLabel}>
+                  Cancelled
+                </Text>
               </View>
             </View>
           </View>
@@ -271,15 +290,24 @@ const DashboardScreen: React.FC = () => {
           {data && (
             <View style={styles.metricsSection}>
               <View style={styles.sectionHeaderRow}>
-                <Text style={styles.sectionTitle}>Overview & Performance</Text>
-                <Text style={styles.sectionSubtext}>Current Month</Text>
+                <Text allowFontScaling={false} style={styles.sectionTitle}>
+                  Overview & Performance
+                </Text>
+                <Text allowFontScaling={false} style={styles.sectionSubtext}>
+                  Current Month
+                </Text>
               </View>
 
               <View style={styles.metricsGrid}>
                 {/* Monthly Visits */}
                 <View style={styles.metricCard}>
                   <View style={styles.metricCardHeader}>
-                    <Text style={styles.metricCardLabel}>Monthly Visits</Text>
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.metricCardLabel}
+                    >
+                      Monthly Visits
+                    </Text>
                     <View
                       style={[
                         styles.metricIconWrap,
@@ -294,7 +322,7 @@ const DashboardScreen: React.FC = () => {
                       />
                     </View>
                   </View>
-                  <Text style={styles.metricCardValue}>
+                  <Text allowFontScaling={false} style={styles.metricCardValue}>
                     {formatNum(data.monthlyAppointments.currentCount)}
                   </Text>
                   <View style={styles.metricTrendRow}>
@@ -328,14 +356,22 @@ const DashboardScreen: React.FC = () => {
                         %
                       </Text>
                     </View>
-                    <Text style={styles.metricSub}> vs last mo</Text>
+                    <Text allowFontScaling={false} style={styles.metricSub}>
+                      {' '}
+                      vs last mo
+                    </Text>
                   </View>
                 </View>
 
                 {/* Total Patients */}
                 <View style={styles.metricCard}>
                   <View style={styles.metricCardHeader}>
-                    <Text style={styles.metricCardLabel}>Total Patients</Text>
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.metricCardLabel}
+                    >
+                      Total Patients
+                    </Text>
                     <View
                       style={[
                         styles.metricIconWrap,
@@ -350,7 +386,7 @@ const DashboardScreen: React.FC = () => {
                       />
                     </View>
                   </View>
-                  <Text style={styles.metricCardValue}>
+                  <Text allowFontScaling={false} style={styles.metricCardValue}>
                     {formatNum(data.patients.currentCount)}
                   </Text>
                   <View style={styles.metricTrendRow}>
@@ -386,14 +422,22 @@ const DashboardScreen: React.FC = () => {
                         {Math.abs(data.patients.growthPercentage).toFixed(0)}%
                       </Text>
                     </View>
-                    <Text style={styles.metricSub}> growth</Text>
+                    <Text allowFontScaling={false} style={styles.metricSub}>
+                      {' '}
+                      growth
+                    </Text>
                   </View>
                 </View>
 
                 {/* Doctors on Duty */}
                 <View style={styles.metricCard}>
                   <View style={styles.metricCardHeader}>
-                    <Text style={styles.metricCardLabel}>Doctors on Duty</Text>
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.metricCardLabel}
+                    >
+                      Doctors on Duty
+                    </Text>
                     <View
                       style={[
                         styles.metricIconWrap,
@@ -408,18 +452,23 @@ const DashboardScreen: React.FC = () => {
                       />
                     </View>
                   </View>
-                  <Text style={styles.metricCardValue}>
+                  <Text allowFontScaling={false} style={styles.metricCardValue}>
                     {data.todayDoctors.length}
                   </Text>
                   <View style={styles.metricTrendRow}>
-                    <Text style={styles.metricNote}>active today</Text>
+                    <Text allowFontScaling={false} style={styles.metricNote}>
+                      active today
+                    </Text>
                   </View>
                 </View>
 
                 {/* Estimated Revenue */}
                 <View style={styles.metricCard}>
                   <View style={styles.metricCardHeader}>
-                    <Text style={styles.metricCardLabel}>
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.metricCardLabel}
+                    >
                       Estimated Revenue
                     </Text>
                     <View
@@ -431,9 +480,13 @@ const DashboardScreen: React.FC = () => {
                       <GrowIcon width={SIZE(14)} height={SIZE(14)} />
                     </View>
                   </View>
-                  <Text style={styles.metricCardValue}>₹0</Text>
+                  <Text allowFontScaling={false} style={styles.metricCardValue}>
+                    ₹0
+                  </Text>
                   <View style={styles.metricTrendRow}>
-                    <Text style={styles.metricNote}>this month</Text>
+                    <Text allowFontScaling={false} style={styles.metricNote}>
+                      this month
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -445,9 +498,14 @@ const DashboardScreen: React.FC = () => {
             <View style={styles.cardSection}>
               <View style={styles.sectionHeaderRow}>
                 <View style={styles.titleWithBadge}>
-                  <Text style={styles.sectionTitle}>Doctors on Duty</Text>
+                  <Text allowFontScaling={false} style={styles.sectionTitle}>
+                    Doctors on Duty
+                  </Text>
                   <View style={styles.countBadge}>
-                    <Text style={styles.countBadgeText}>
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.countBadgeText}
+                    >
                       {data.todayDoctors.length}
                     </Text>
                   </View>
@@ -456,17 +514,19 @@ const DashboardScreen: React.FC = () => {
                   <TouchableOpacity
                     onPress={() => navigation.navigate('Doctors')}
                   >
-                    <Text style={styles.viewAllText}>View All</Text>
+                    <Text allowFontScaling={false} style={styles.viewAllText}>
+                      View All
+                    </Text>
                   </TouchableOpacity>
                 )}
               </View>
 
               {data.todayDoctors.length === 0 ? (
                 <View style={styles.emptyCard}>
-                  <Text style={styles.emptyTitle}>
+                  <Text allowFontScaling={false} style={styles.emptyTitle}>
                     No doctors scheduled today
                   </Text>
-                  <Text style={styles.emptySubtitle}>
+                  <Text allowFontScaling={false} style={styles.emptySubtitle}>
                     Schedules configured in management will appear here.
                   </Text>
                 </View>
@@ -501,7 +561,11 @@ const DashboardScreen: React.FC = () => {
 
                       {/* Info */}
                       <View style={styles.doctorInfoCol}>
-                        <Text style={styles.doctorNameText} numberOfLines={1}>
+                        <Text
+                          allowFontScaling={false}
+                          style={styles.doctorNameText}
+                          numberOfLines={1}
+                        >
                           {doc.name.startsWith('Dr.')
                             ? doc.name
                             : `Dr. ${doc.name}`}
@@ -520,7 +584,10 @@ const DashboardScreen: React.FC = () => {
                               stroke={colors.textMuted}
                               color={colors.textMuted}
                             />
-                            <Text style={styles.doctorTimeText}>
+                            <Text
+                              allowFontScaling={false}
+                              style={styles.doctorTimeText}
+                            >
                               {to12h(schedule.startTime)} –{' '}
                               {to12h(schedule.stopTime)}
                             </Text>
@@ -558,9 +625,14 @@ const DashboardScreen: React.FC = () => {
             <View style={styles.cardSection}>
               <View style={styles.sectionHeaderRow}>
                 <View style={styles.titleWithBadge}>
-                  <Text style={styles.sectionTitle}>Today's Appointments</Text>
+                  <Text allowFontScaling={false} style={styles.sectionTitle}>
+                    Today's Appointments
+                  </Text>
                   <View style={styles.countBadge}>
-                    <Text style={styles.countBadgeText}>
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.countBadgeText}
+                    >
                       {data.todayAppointments.length}
                     </Text>
                   </View>
@@ -568,7 +640,9 @@ const DashboardScreen: React.FC = () => {
                 <TouchableOpacity
                   onPress={() => navigation.navigate('Appointments')}
                 >
-                  <Text style={styles.viewAllText}>See All</Text>
+                  <Text allowFontScaling={false} style={styles.viewAllText}>
+                    See All
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -584,21 +658,37 @@ const DashboardScreen: React.FC = () => {
                   onPress={() => navigation.navigate('Appointments')}
                 >
                   <View style={styles.apptAvatarPlaceholder}>
-                    <Text style={styles.apptAvatarLetter}>
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.apptAvatarLetter}
+                    >
                       {appt.patient.name.charAt(0).toUpperCase()}
                     </Text>
                   </View>
                   <View style={styles.apptDetailsCol}>
-                    <Text style={styles.apptPatientName} numberOfLines={1}>
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.apptPatientName}
+                      numberOfLines={1}
+                    >
                       {appt.patient.name}
                     </Text>
-                    <Text style={styles.apptDoctorName} numberOfLines={1}>
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.apptDoctorName}
+                      numberOfLines={1}
+                    >
                       Dr. {appt.doctor.name}
                     </Text>
                   </View>
                   <View style={styles.apptRightCol}>
                     <View style={styles.apptStatusTag}>
-                      <Text style={styles.apptStatusText}>Confirmed</Text>
+                      <Text
+                        allowFontScaling={false}
+                        style={styles.apptStatusText}
+                      >
+                        Confirmed
+                      </Text>
                     </View>
                     <RightArrowIcon
                       width={SIZE(12)}

@@ -1,12 +1,12 @@
-import React, { useEffect } from 'react'
-import { View, Text, StyleSheet, Animated } from 'react-native'
-import { colors, typography, spacing, radius, fonts } from '../styles/theme'
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, Animated } from 'react-native';
+import { colors, typography, spacing, radius, fonts } from '../styles/theme';
 
 interface ToastProps {
-  message: string
-  type?: 'success' | 'error' | 'info'
-  onClose: () => void
-  duration?: number
+  message: string;
+  type?: 'success' | 'error' | 'info';
+  onClose: () => void;
+  duration?: number;
 }
 
 const Toast: React.FC<ToastProps> = ({
@@ -15,7 +15,7 @@ const Toast: React.FC<ToastProps> = ({
   onClose,
   duration = 3000,
 }) => {
-  const opacity = React.useRef(new Animated.Value(0)).current
+  const opacity = React.useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.sequence([
@@ -30,15 +30,17 @@ const Toast: React.FC<ToastProps> = ({
         duration: 250,
         useNativeDriver: true,
       }),
-    ]).start(() => onClose())
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    ]).start(() => onClose());
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Animated.View style={[styles.container, styles[type], { opacity }]}>
-      <Text style={styles.text}>{message}</Text>
+      <Text allowFontScaling={false} style={styles.text}>
+        {message}
+      </Text>
     </Animated.View>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -70,6 +72,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.medium,
     textAlign: 'center',
   },
-})
+});
 
-export default Toast
+export default Toast;

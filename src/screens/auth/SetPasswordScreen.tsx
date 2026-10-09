@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,15 +7,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
-} from 'react-native'
-import type { NativeStackScreenProps } from '@react-navigation/native-stack'
-import type { AuthStackParamList } from '../../navigation/types'
-import { setPassword as setPasswordApi } from '../../services/api'
-import InputField from '../../components/InputField'
-import Button from '../../components/Button'
-import { colors, typography, spacing, radius, fonts } from '../../styles/theme'
+} from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { AuthStackParamList } from '../../navigation/types';
+import { setPassword as setPasswordApi } from '../../services/api';
+import InputField from '../../components/InputField';
+import Button from '../../components/Button';
+import { colors, typography, spacing, radius, fonts } from '../../styles/theme';
 
-type Props = NativeStackScreenProps<AuthStackParamList, 'SetPassword'>
+type Props = NativeStackScreenProps<AuthStackParamList, 'SetPassword'>;
 
 const passwordRules = (password: string) => [
   { label: 'At least 8 characters', pass: password.length >= 8 },
@@ -26,49 +26,55 @@ const passwordRules = (password: string) => [
     label: 'One special character (@$!%*?&#)',
     pass: /[@$!%*?&#]/.test(password),
   },
-]
+];
 
 const SetPasswordScreen: React.FC<Props> = ({ route, navigation }) => {
-  const token = route.params?.token ?? ''
-  const [newPassword, setNewPassword] = useState('')
-  const [confirm, setConfirm] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
+  const token = route.params?.token ?? '';
+  const [newPassword, setNewPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
-  const rules = passwordRules(newPassword)
-  const allRulesPass = rules.every(r => r.pass)
-  const isValid = allRulesPass && newPassword === confirm
+  const rules = passwordRules(newPassword);
+  const allRulesPass = rules.every(r => r.pass);
+  const isValid = allRulesPass && newPassword === confirm;
 
   const handleSubmit = async () => {
-    if (!isValid) return
+    if (!isValid) return;
     if (!token) {
-      setError('Invalid or missing token. Please use the link sent to your email.')
-      return
+      setError(
+        'Invalid or missing token. Please use the link sent to your email.',
+      );
+      return;
     }
-    setLoading(true)
-    setError('')
+    setLoading(true);
+    setError('');
     try {
-      await setPasswordApi(token, newPassword)
-      setSuccess(true)
+      await setPasswordApi(token, newPassword);
+      setSuccess(true);
     } catch (err: any) {
       setError(
         err?.response?.data?.message ||
-          'Failed to set password. The link may have expired.'
-      )
+          'Failed to set password. The link may have expired.',
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (!token) {
     return (
       <View style={styles.centered}>
         <View style={styles.iconCircle}>
-          <Text style={styles.iconText}>⚠️</Text>
+          <Text allowFontScaling={false} style={styles.iconText}>
+            ⚠️
+          </Text>
         </View>
-        <Text style={styles.title}>Invalid Link</Text>
-        <Text style={styles.subtitle}>
+        <Text allowFontScaling={false} style={styles.title}>
+          Invalid Link
+        </Text>
+        <Text allowFontScaling={false} style={styles.subtitle}>
           This link is invalid or missing a token. Please use the link sent to
           your email.
         </Text>
@@ -78,17 +84,21 @@ const SetPasswordScreen: React.FC<Props> = ({ route, navigation }) => {
           style={styles.goBackBtn}
         />
       </View>
-    )
+    );
   }
 
   if (success) {
     return (
       <View style={styles.centered}>
         <View style={[styles.iconCircle, styles.iconSuccess]}>
-          <Text style={styles.iconText}>✓</Text>
+          <Text allowFontScaling={false} style={styles.iconText}>
+            ✓
+          </Text>
         </View>
-        <Text style={styles.title}>Password Set!</Text>
-        <Text style={styles.subtitle}>
+        <Text allowFontScaling={false} style={styles.title}>
+          Password Set!
+        </Text>
+        <Text allowFontScaling={false} style={styles.subtitle}>
           Your password has been created. You can now log in to your account.
         </Text>
         <Button
@@ -98,7 +108,7 @@ const SetPasswordScreen: React.FC<Props> = ({ route, navigation }) => {
           fullWidth
         />
       </View>
-    )
+    );
   }
 
   return (
@@ -111,10 +121,18 @@ const SetPasswordScreen: React.FC<Props> = ({ route, navigation }) => {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.card}>
-          <Text style={styles.title}>Set Password</Text>
-          <Text style={styles.subtitle}>Create a password for your account</Text>
+          <Text allowFontScaling={false} style={styles.title}>
+            Set Password
+          </Text>
+          <Text allowFontScaling={false} style={styles.subtitle}>
+            Create a password for your account
+          </Text>
 
-          {error ? <Text style={styles.errorBanner}>{error}</Text> : null}
+          {error ? (
+            <Text allowFontScaling={false} style={styles.errorBanner}>
+              {error}
+            </Text>
+          ) : null}
 
           <InputField
             label="New Password"
@@ -129,9 +147,12 @@ const SetPasswordScreen: React.FC<Props> = ({ route, navigation }) => {
               {rules.map(r => (
                 <Text
                   key={r.label}
-                  style={[styles.rule, r.pass ? styles.rulePass : styles.ruleFail]}
+                  style={[
+                    styles.rule,
+                    r.pass ? styles.rulePass : styles.ruleFail,
+                  ]}
                 >
-                  {r.pass ? '✓' : '✗'}  {r.label}
+                  {r.pass ? '✓' : '✗'} {r.label}
                 </Text>
               ))}
             </View>
@@ -146,7 +167,9 @@ const SetPasswordScreen: React.FC<Props> = ({ route, navigation }) => {
           />
 
           {confirm.length > 0 && newPassword !== confirm && (
-            <Text style={styles.mismatch}>Passwords do not match</Text>
+            <Text allowFontScaling={false} style={styles.mismatch}>
+              Passwords do not match
+            </Text>
           )}
 
           <Button
@@ -160,8 +183,8 @@ const SetPasswordScreen: React.FC<Props> = ({ route, navigation }) => {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   flex: {
@@ -251,6 +274,6 @@ const styles = StyleSheet.create({
   iconText: {
     fontSize: 32,
   },
-})
+});
 
-export default SetPasswordScreen
+export default SetPasswordScreen;

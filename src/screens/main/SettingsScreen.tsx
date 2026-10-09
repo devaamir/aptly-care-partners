@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react';
 import {
   View,
   Text,
@@ -7,22 +7,26 @@ import {
   TouchableOpacity,
   Image,
   Alert,
-} from 'react-native'
-import { useAppContext } from '../../context/AppContext'
-import { getSubscriptionStatus, updateClinic } from '../../services/api'
-import { colors, typography, spacing, radius, fonts } from '../../styles/theme'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import Button from '../../components/Button'
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAppContext } from '../../context/AppContext';
+import { colors, fonts } from '../../styles/theme';
+import { SIZE } from '../../themes/sizes';
+import {
+  PhoneIcon,
+  EmailIcon,
+  BuildingIcon,
+  RightArrowIcon,
+} from '../../assets/icons';
+import LocationIcon from '../../assets/icons/location-icon.svg';
 
 interface Props {
-  onSwitchProfile: () => void
+  onSwitchProfile: () => void;
 }
 
 const SettingsScreen: React.FC<Props> = ({ onSwitchProfile }) => {
-  const { activeContext, activeDoctor, logout } = useAppContext()
-  const [subLoading, setSubLoading] = useState(false)
-  const [subStatus, setSubStatus] = useState<string | null>(null)
-  const clinic = activeContext?.medicalCenter
+  const { activeContext, activeDoctor, logout } = useAppContext();
+  const clinic = activeContext?.medicalCenter;
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -31,133 +35,123 @@ const SettingsScreen: React.FC<Props> = ({ onSwitchProfile }) => {
         text: 'Logout',
         style: 'destructive',
         onPress: async () => {
-          await logout()
-          // Navigation handled by AppContext state change -> RootNavigator
+          await logout();
         },
       },
-    ])
-  }
-
-  const handleSubscriptionStatus = async () => {
-    setSubLoading(true)
-    try {
-      const res = await getSubscriptionStatus()
-      if (res.success) {
-        setSubStatus(
-          `Status: ${res.data.subscriptionStatus}\nTrial expires: ${new Date(res.data.trialExpiresAt).toLocaleDateString()}`
-        )
-      }
-    } catch {
-      setSubStatus('Failed to load subscription status.')
-    } finally {
-      setSubLoading(false)
-    }
-  }
+    ]);
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content}>
-        {/* Clinic Profile */}
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Clinic / Doctor Profile Card */}
         {clinic && (
           <View style={styles.profileCard}>
             {clinic.profilePicture ? (
-              <Image source={{ uri: clinic.profilePicture }} style={styles.clinicAvatar} />
+              <Image source={{ uri: clinic.profilePicture }} style={styles.avatar} />
             ) : (
-              <View style={styles.clinicAvatarFallback}>
-                <Text style={styles.clinicAvatarLetter}>
-                  {clinic.name.charAt(0)}
+              <View style={styles.avatarFallback}>
+                <Text allowFontScaling={false} style={styles.avatarLetter}>
+                  {clinic.name.charAt(0).toUpperCase()}
                 </Text>
               </View>
             )}
             <View style={styles.profileInfo}>
-              <Text style={styles.clinicName}>{clinic.name}</Text>
-              <Text style={styles.clinicType}>{clinic.type}</Text>
-              <Text style={styles.clinicContact}>
-                📞 {clinic.phoneNumber}
+              <Text allowFontScaling={false} style={styles.profileName} numberOfLines={1}>
+                {clinic.name}
               </Text>
-              {clinic.emailAddress ? (
-                <Text style={styles.clinicContact}>✉️ {clinic.emailAddress}</Text>
+              {clinic.type ? (
+                <View style={styles.typeBadge}>
+                  <Text allowFontScaling={false} style={styles.typeBadgeText}>
+                    {clinic.type}
+                  </Text>
+                </View>
               ) : null}
-              {clinic.address ? (
-                <Text style={styles.clinicContact} numberOfLines={2}>
-                  📍 {clinic.address}, {clinic.district}
-                </Text>
-              ) : null}
+              <View style={styles.contactRows}>
+                {clinic.phoneNumber ? (
+                  <View style={styles.contactRow}>
+                    <PhoneIcon width={SIZE(13)} height={SIZE(13)} color={colors.textMuted} />
+                    <Text allowFontScaling={false} style={styles.contactText}>
+                      {clinic.phoneNumber}
+                    </Text>
+                  </View>
+                ) : null}
+                {clinic.emailAddress ? (
+                  <View style={styles.contactRow}>
+                    <EmailIcon width={SIZE(13)} height={SIZE(13)} color={colors.textMuted} />
+                    <Text allowFontScaling={false} style={styles.contactText} numberOfLines={1}>
+                      {clinic.emailAddress}
+                    </Text>
+                  </View>
+                ) : null}
+                {clinic.address ? (
+                  <View style={styles.contactRow}>
+                    <LocationIcon width={SIZE(13)} height={SIZE(13)} color={colors.textMuted} />
+                    <Text allowFontScaling={false} style={styles.contactText} numberOfLines={2}>
+                      {clinic.address}{clinic.district ? `, ${clinic.district}` : ''}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
             </View>
           </View>
         )}
 
-        {/* Doctor Profile (if doctor role) */}
+        {/* Doctor Account */}
         {activeDoctor && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Doctor Account</Text>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Name</Text>
-              <Text style={styles.infoValue}>{activeDoctor.name}</Text>
-            </View>
-            {activeDoctor.emailAddress ? (
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Email</Text>
-                <Text style={styles.infoValue}>{activeDoctor.emailAddress}</Text>
-              </View>
-            ) : null}
-            {activeDoctor.phoneNumber ? (
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Phone</Text>
-                <Text style={styles.infoValue}>{activeDoctor.phoneNumber}</Text>
-              </View>
-            ) : null}
+            <Text allowFontScaling={false} style={styles.sectionTitle}>
+              Doctor Account
+            </Text>
+            {[
+              { label: 'Name', value: activeDoctor.name },
+              { label: 'Email', value: activeDoctor.emailAddress },
+              { label: 'Phone', value: activeDoctor.phoneNumber },
+            ]
+              .filter(r => r.value)
+              .map((r, i, arr) => (
+                <View
+                  key={r.label}
+                  style={[styles.infoRow, i === arr.length - 1 && styles.infoRowLast]}
+                >
+                  <Text allowFontScaling={false} style={styles.infoLabel}>
+                    {r.label}
+                  </Text>
+                  <Text allowFontScaling={false} style={styles.infoValue} numberOfLines={1}>
+                    {r.value}
+                  </Text>
+                </View>
+              ))}
           </View>
         )}
 
         {/* Specialties */}
         {clinic?.specialties && clinic.specialties.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Specialties</Text>
-            <View style={styles.specialtyChips}>
+            <Text allowFontScaling={false} style={styles.sectionTitle}>
+              Specialties
+            </Text>
+            <View style={styles.chipsRow}>
               {clinic.specialties.map(s => (
                 <View key={s.id} style={styles.chip}>
-                  <Text style={styles.chipText}>{s.name}</Text>
+                  <Text allowFontScaling={false} style={styles.chipText}>
+                    {s.name}
+                  </Text>
                 </View>
               ))}
             </View>
           </View>
         )}
 
-        {/* Subscription */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Subscription</Text>
-          {subStatus ? (
-            <Text style={styles.subStatus}>{subStatus}</Text>
-          ) : null}
-          <TouchableOpacity
-            style={styles.actionRow}
-            onPress={handleSubscriptionStatus}
-            disabled={subLoading}
-          >
-            <Text style={styles.actionLabel}>
-              {subLoading ? 'Loading...' : 'Check Subscription Status'}
-            </Text>
-            <Text style={styles.actionArrow}>›</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Account Actions */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
-          <TouchableOpacity
-            style={styles.actionRow}
-            onPress={onSwitchProfile}
-          >
-            <Text style={styles.actionLabel}>Switch Profile</Text>
-            <Text style={styles.actionArrow}>›</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Clinic Info */}
+        {/* Clinic Details */}
         {clinic && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Clinic Details</Text>
+            <Text allowFontScaling={false} style={styles.sectionTitle}>
+              Clinic Details
+            </Text>
             {[
               { label: 'Website', value: clinic.websiteUrl },
               { label: 'About', value: clinic.about },
@@ -166,121 +160,237 @@ const SettingsScreen: React.FC<Props> = ({ onSwitchProfile }) => {
               { label: 'Country', value: clinic.country },
             ]
               .filter(r => r.value)
-              .map(r => (
-                <View style={styles.infoRow} key={r.label}>
-                  <Text style={styles.infoLabel}>{r.label}</Text>
-                  <Text style={styles.infoValue} numberOfLines={2}>{r.value}</Text>
+              .map((r, i, arr) => (
+                <View
+                  key={r.label}
+                  style={[styles.infoRow, i === arr.length - 1 && styles.infoRowLast]}
+                >
+                  <Text allowFontScaling={false} style={styles.infoLabel}>
+                    {r.label}
+                  </Text>
+                  <Text
+                    allowFontScaling={false}
+                    style={styles.infoValue}
+                    numberOfLines={2}
+                  >
+                    {r.value}
+                  </Text>
                 </View>
               ))}
           </View>
         )}
 
-        <Button
-          label="Logout"
-          onPress={handleLogout}
-          variant="danger"
-          fullWidth
-          style={styles.logoutBtn}
-        />
+        {/* Account */}
+        <View style={styles.section}>
+          <Text allowFontScaling={false} style={styles.sectionTitle}>
+            Account
+          </Text>
+          <TouchableOpacity
+            style={[styles.actionRow, styles.actionRowLast]}
+            onPress={onSwitchProfile}
+            activeOpacity={0.7}
+          >
+            <BuildingIcon width={SIZE(18)} height={SIZE(18)} stroke={colors.textSecondary} />
+            <Text allowFontScaling={false} style={styles.actionLabel}>
+              Switch Profile
+            </Text>
+            <RightArrowIcon width={SIZE(16)} height={SIZE(16)} stroke={colors.textMuted} />
+          </TouchableOpacity>
+        </View>
 
-        <Text style={styles.version}>Aptly Clinic v1.0.0</Text>
+        {/* Logout */}
+        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
+          <Text allowFontScaling={false} style={styles.logoutText}>
+            Logout
+          </Text>
+        </TouchableOpacity>
+
+        <Text allowFontScaling={false} style={styles.version}>
+          Aptly Clinic v1.0.0
+        </Text>
       </ScrollView>
     </SafeAreaView>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.pageBg },
-  content: { padding: spacing.base, paddingBottom: spacing['3xl'] },
+  safe: {
+    flex: 1,
+    backgroundColor: colors.pageBg,
+  },
+  content: {
+    padding: SIZE(16),
+    paddingBottom: SIZE(40),
+  },
+  // Profile card
   profileCard: {
     backgroundColor: colors.white,
-    borderRadius: radius.xl,
-    padding: spacing.base,
+    borderRadius: SIZE(14),
+    padding: SIZE(16),
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: spacing.sm,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
+    gap: SIZE(14),
+    marginBottom: SIZE(10),
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  clinicAvatar: { width: 64, height: 64, borderRadius: radius.full, marginRight: spacing.md },
-  clinicAvatarFallback: {
-    width: 64,
-    height: 64,
-    borderRadius: radius.full,
+  avatar: {
+    width: SIZE(64),
+    height: SIZE(64),
+    borderRadius: SIZE(32),
+  },
+  avatarFallback: {
+    width: SIZE(64),
+    height: SIZE(64),
+    borderRadius: SIZE(32),
     backgroundColor: colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing.md,
   },
-  clinicAvatarLetter: { fontSize: typography.fontSize2xl, fontFamily: fonts.bold, color: colors.primary },
-  profileInfo: { flex: 1 },
-  clinicName: { fontSize: typography.fontSizeLg, fontFamily: fonts.bold, color: colors.textPrimary },
-  clinicType: { fontSize: typography.fontSizeXs, color: colors.textSecondary, marginTop: 2, textTransform: 'capitalize' },
-  clinicContact: { fontSize: typography.fontSizeXs, color: colors.textSecondary, marginTop: 4 },
+  avatarLetter: {
+    fontSize: SIZE(24),
+    fontFamily: fonts.bold,
+    color: colors.primary,
+  },
+  profileInfo: {
+    flex: 1,
+    gap: SIZE(4),
+  },
+  profileName: {
+    fontSize: SIZE(16),
+    fontFamily: fonts.bold,
+    color: colors.textPrimary,
+  },
+  typeBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.primaryLight,
+    borderRadius: SIZE(999),
+    paddingHorizontal: SIZE(10),
+    paddingVertical: SIZE(2),
+  },
+  typeBadgeText: {
+    fontSize: SIZE(11),
+    fontFamily: fonts.medium,
+    color: colors.primary,
+    textTransform: 'capitalize',
+  },
+  contactRows: {
+    gap: SIZE(4),
+    marginTop: SIZE(4),
+  },
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SIZE(6),
+  },
+  contactText: {
+    flex: 1,
+    fontSize: SIZE(12),
+    fontFamily: fonts.regular,
+    color: colors.textSecondary,
+  },
+  // Section card
   section: {
     backgroundColor: colors.white,
-    borderRadius: radius.lg,
-    padding: spacing.base,
-    marginBottom: spacing.sm,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
+    borderRadius: SIZE(14),
+    paddingHorizontal: SIZE(16),
+    paddingTop: SIZE(14),
+    paddingBottom: SIZE(6),
+    marginBottom: SIZE(10),
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   sectionTitle: {
-    fontSize: typography.fontSizeSm,
+    fontSize: SIZE(11),
     fontFamily: fonts.semiBold,
-    color: colors.textSecondary,
+    color: colors.textMuted,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: spacing.md,
+    letterSpacing: 0.6,
+    marginBottom: SIZE(10),
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    paddingVertical: SIZE(10),
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  infoLabel: { fontSize: typography.fontSizeSm, color: colors.textSecondary },
-  infoValue: { fontSize: typography.fontSizeSm, color: colors.textPrimary, fontFamily: fonts.medium, maxWidth: '60%', textAlign: 'right' },
-  specialtyChips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  chip: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-    backgroundColor: colors.primaryLight,
-    borderRadius: radius.full,
+  infoRowLast: {
+    borderBottomWidth: 0,
+    marginBottom: SIZE(6),
   },
-  chipText: { fontSize: typography.fontSizeXs, color: colors.primary, fontFamily: fonts.medium },
-  subStatus: {
-    fontSize: typography.fontSizeSm,
+  infoLabel: {
+    fontSize: SIZE(13),
+    fontFamily: fonts.regular,
     color: colors.textSecondary,
-    backgroundColor: colors.pageBg,
-    borderRadius: radius.md,
-    padding: spacing.sm,
-    marginBottom: spacing.sm,
   },
+  infoValue: {
+    fontSize: SIZE(13),
+    fontFamily: fonts.medium,
+    color: colors.textPrimary,
+    maxWidth: '55%',
+    textAlign: 'right',
+  },
+  // Chips
+  chipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SIZE(8),
+    paddingBottom: SIZE(8),
+  },
+  chip: {
+    paddingVertical: SIZE(4),
+    paddingHorizontal: SIZE(12),
+    backgroundColor: colors.primaryLight,
+    borderRadius: SIZE(999),
+  },
+  chipText: {
+    fontSize: SIZE(12),
+    fontFamily: fonts.medium,
+    color: colors.primary,
+  },
+  // Action rows
   actionRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
+    gap: SIZE(12),
+    paddingVertical: SIZE(12),
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  actionLabel: { fontSize: typography.fontSizeBase, color: colors.textPrimary },
-  actionArrow: { fontSize: 20, color: colors.textSecondary },
-  logoutBtn: { marginTop: spacing.lg },
+  actionRowLast: {
+    borderBottomWidth: 0,
+    marginBottom: SIZE(4),
+  },
+  actionLabel: {
+    flex: 1,
+    fontSize: SIZE(14),
+    fontFamily: fonts.medium,
+    color: colors.textPrimary,
+  },
+  // Logout
+  logoutBtn: {
+    backgroundColor: '#FEE2E2',
+    borderRadius: SIZE(14),
+    paddingVertical: SIZE(15),
+    alignItems: 'center',
+    marginTop: SIZE(6),
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  logoutText: {
+    fontSize: SIZE(15),
+    fontFamily: fonts.semiBold,
+    color: colors.danger,
+  },
   version: {
     textAlign: 'center',
-    fontSize: typography.fontSizeXs,
+    fontSize: SIZE(11),
+    fontFamily: fonts.regular,
     color: colors.textMuted,
-    marginTop: spacing.base,
+    marginTop: SIZE(16),
   },
-})
+});
 
-export default SettingsScreen
+export default SettingsScreen;

@@ -12,6 +12,7 @@ export { default as CalendarIcon } from './calendar.svg';
 export { default as CameraIcon } from './camera-icon.svg';
 export { default as ClockBlueIcon } from './clock-blue-icon.svg';
 export { default as DashboardIcon } from './dashboard-icon.svg';
+export { default as DashboardSelectedIcon } from './dashboard-selected.svg';
 export { default as DoctorsIcon } from './doctors-icon.svg';
 export { default as DollarIcon } from './dollar-icon.svg';
 export { default as DownArrowRedIcon } from './down-arrow-red.svg';

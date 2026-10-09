@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,78 +7,87 @@ import {
   ActivityIndicator,
   Image,
   ScrollView,
-} from 'react-native'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { getContexts, switchContext } from '../../services/api'
-import type { UserContext } from '../../services/types'
-import { useAppContext } from '../../context/AppContext'
-import { colors, fonts, radius } from '../../styles/theme'
-import { SIZE } from '../../themes/sizes'
-import RightArrowIcon from '../../assets/icons/right-arrow-grey.svg'
-import WarningRedIcon from '../../assets/icons/warning-red.svg'
-import LocationIcon from '../../assets/icons/location-icon.svg'
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { getContexts, switchContext } from '../../services/api';
+import type { UserContext } from '../../services/types';
+import { useAppContext } from '../../context/AppContext';
+import { colors, fonts, radius } from '../../styles/theme';
+import { SIZE } from '../../themes/sizes';
+import RightArrowIcon from '../../assets/icons/right-arrow-grey.svg';
+import WarningRedIcon from '../../assets/icons/warning-red.svg';
+import LocationIcon from '../../assets/icons/location-icon.svg';
 
 interface Props {
-  onSelect: () => void
-  onBack: () => void
+  onSelect: () => void;
+  onBack: () => void;
 }
 
 const SelectProfileScreen: React.FC<Props> = ({ onSelect }) => {
-  const { setTokens, setContexts: storeContexts, setActiveContext, setActiveDoctor } = useAppContext()
-  const [contexts, setContexts] = useState<UserContext[]>([])
-  const [loading, setLoading] = useState(true)
-  const [switching, setSwitching] = useState<string | null>(null)
-  const [failedId, setFailedId] = useState<string | null>(null)
+  const {
+    setTokens,
+    setContexts: storeContexts,
+    setActiveContext,
+    setActiveDoctor,
+  } = useAppContext();
+  const [contexts, setContexts] = useState<UserContext[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [switching, setSwitching] = useState<string | null>(null);
+  const [failedId, setFailedId] = useState<string | null>(null);
 
   useEffect(() => {
     getContexts()
       .then(res => {
         if (res.success) {
-          setContexts(res.data)
-          storeContexts(res.data)
+          setContexts(res.data);
+          storeContexts(res.data);
         }
       })
       .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleSelect = async (ctx: UserContext) => {
-    setSwitching(ctx.medicalCenter.id)
-    setFailedId(null)
+    setSwitching(ctx.medicalCenter.id);
+    setFailedId(null);
     try {
-      const res = await switchContext(ctx.role, ctx.medicalCenter.id)
+      const res = await switchContext(ctx.role, ctx.medicalCenter.id);
       if (res.success) {
-        await setTokens(res.data.accessToken, res.data.refreshToken)
-        await setActiveContext({ role: ctx.role, medicalCenter: res.data.medicalCenter })
-        await setActiveDoctor(res.data.doctor)
-        await AsyncStorage.setItem('selectedContextId', ctx.medicalCenter.id)
-        onSelect()
+        await setTokens(res.data.accessToken, res.data.refreshToken);
+        await setActiveContext({
+          role: ctx.role,
+          medicalCenter: res.data.medicalCenter,
+        });
+        await setActiveDoctor(res.data.doctor);
+        await AsyncStorage.setItem('selectedContextId', ctx.medicalCenter.id);
+        onSelect();
       } else {
-        setFailedId(ctx.medicalCenter.id)
+        setFailedId(ctx.medicalCenter.id);
       }
     } catch {
-      setFailedId(ctx.medicalCenter.id)
+      setFailedId(ctx.medicalCenter.id);
     } finally {
-      setSwitching(null)
+      setSwitching(null);
     }
-  }
+  };
 
-  const isDoctor = (role: string) => role === 'doctor'
+  const isDoctor = (role: string) => role === 'doctor';
 
   const specialtiesLine = (ctx: UserContext) => {
-    const parts: string[] = []
-    if (ctx.medicalCenter.type) parts.push(ctx.medicalCenter.type)
-    if (ctx.medicalCenter.medicalSystem?.name) parts.push(ctx.medicalCenter.medicalSystem.name)
-    return parts.join(' • ')
-  }
+    const parts: string[] = [];
+    if (ctx.medicalCenter.type) parts.push(ctx.medicalCenter.type);
+    if (ctx.medicalCenter.medicalSystem?.name)
+      parts.push(ctx.medicalCenter.medicalSystem.name);
+    return parts.join(' • ');
+  };
 
   const locationLine = (ctx: UserContext) => {
-    const parts: string[] = []
-    if (ctx.medicalCenter.district) parts.push(ctx.medicalCenter.district)
-    if (ctx.medicalCenter.state) parts.push(ctx.medicalCenter.state)
-    return parts.join(', ')
-  }
+    const parts: string[] = [];
+    if (ctx.medicalCenter.district) parts.push(ctx.medicalCenter.district);
+    if (ctx.medicalCenter.state) parts.push(ctx.medicalCenter.state);
+    return parts.join(', ');
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -86,8 +95,10 @@ const SelectProfileScreen: React.FC<Props> = ({ onSelect }) => {
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>Select Your Profile</Text>
-        <Text style={styles.subtitle}>
+        <Text allowFontScaling={false} style={styles.title}>
+          Select Your Profile
+        </Text>
+        <Text allowFontScaling={false} style={styles.subtitle}>
           Enter your email address and password to login
         </Text>
 
@@ -97,7 +108,9 @@ const SelectProfileScreen: React.FC<Props> = ({ onSelect }) => {
           </View>
         ) : contexts.length === 0 ? (
           <View style={styles.centered}>
-            <Text style={styles.emptyText}>No profiles found.</Text>
+            <Text allowFontScaling={false} style={styles.emptyText}>
+              No profiles found.
+            </Text>
           </View>
         ) : (
           <View style={styles.list}>
@@ -122,16 +135,28 @@ const SelectProfileScreen: React.FC<Props> = ({ onSelect }) => {
                         />
                       ) : (
                         <View style={styles.doctorAvatarFallback}>
-                          <Text style={styles.avatarLetter}>
+                          <Text
+                            allowFontScaling={false}
+                            style={styles.avatarLetter}
+                          >
                             {ctx.medicalCenter.name.charAt(0).toUpperCase()}
                           </Text>
                         </View>
                       )}
                       <View style={styles.info}>
-                        <Text style={styles.clinicName} numberOfLines={1}>
+                        <Text
+                          allowFontScaling={false}
+                          style={styles.clinicName}
+                          numberOfLines={1}
+                        >
                           {ctx.medicalCenter.name}
                         </Text>
-                        <Text style={styles.doctorSubtitle}>Your Profile</Text>
+                        <Text
+                          allowFontScaling={false}
+                          style={styles.doctorSubtitle}
+                        >
+                          Your Profile
+                        </Text>
                       </View>
                     </>
                   ) : (
@@ -143,27 +168,38 @@ const SelectProfileScreen: React.FC<Props> = ({ onSelect }) => {
                         />
                       ) : (
                         <View style={styles.clinicImageFallback}>
-                          <Text style={styles.avatarLetter}>
+                          <Text
+                            allowFontScaling={false}
+                            style={styles.avatarLetter}
+                          >
                             {ctx.medicalCenter.name.charAt(0).toUpperCase()}
                           </Text>
                         </View>
                       )}
                       <View style={styles.info}>
-                        <Text style={styles.clinicName} numberOfLines={1}>
+                        <Text
+                          allowFontScaling={false}
+                          style={styles.clinicName}
+                          numberOfLines={1}
+                        >
                           {ctx.medicalCenter.name}
                         </Text>
                         {specialtiesLine(ctx) ? (
-                          <Text style={styles.specialtiesText} numberOfLines={1}>
+                          <Text
+                            style={styles.specialtiesText}
+                            numberOfLines={1}
+                          >
                             {specialtiesLine(ctx)}
                           </Text>
                         ) : null}
                         {locationLine(ctx) ? (
                           <View style={styles.locationRow}>
-                            <LocationIcon
-                              width={SIZE(12)}
-                              height={SIZE(12)}
-                            />
-                            <Text style={styles.locationText} numberOfLines={1}>
+                            <LocationIcon width={SIZE(12)} height={SIZE(12)} />
+                            <Text
+                              allowFontScaling={false}
+                              style={styles.locationText}
+                              numberOfLines={1}
+                            >
                               {locationLine(ctx)}
                             </Text>
                           </View>
@@ -175,17 +211,14 @@ const SelectProfileScreen: React.FC<Props> = ({ onSelect }) => {
                   {switching === ctx.medicalCenter.id ? (
                     <ActivityIndicator size="small" color={colors.primary} />
                   ) : (
-                    <RightArrowIcon
-                      width={SIZE(18)}
-                      height={SIZE(18)}
-                    />
+                    <RightArrowIcon width={SIZE(18)} height={SIZE(18)} />
                   )}
                 </TouchableOpacity>
 
                 {failedId === ctx.medicalCenter.id && (
                   <View style={styles.errorBanner}>
                     <WarningRedIcon width={SIZE(14)} height={SIZE(14)} />
-                    <Text style={styles.errorText}>
+                    <Text allowFontScaling={false} style={styles.errorText}>
                       Couldn't switch to this profile. Please try again.
                     </Text>
                   </View>
@@ -196,8 +229,8 @@ const SelectProfileScreen: React.FC<Props> = ({ onSelect }) => {
         )}
       </ScrollView>
     </SafeAreaView>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   safe: {
@@ -331,6 +364,6 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontFamily: fonts.regular,
   },
-})
+});
 
-export default SelectProfileScreen
+export default SelectProfileScreen;

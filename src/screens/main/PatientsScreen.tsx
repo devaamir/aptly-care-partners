@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -13,23 +13,23 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
-} from 'react-native'
-import { getPatients, createPatient, searchPatients } from '../../services/api'
-import type { Patient } from '../../services/types'
-import { colors, typography, spacing, radius, fonts } from '../../styles/theme'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import Button from '../../components/Button'
-import InputField from '../../components/InputField'
+} from 'react-native';
+import { getPatients, createPatient, searchPatients } from '../../services/api';
+import type { Patient } from '../../services/types';
+import { colors, typography, spacing, radius, fonts } from '../../styles/theme';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Button from '../../components/Button';
+import InputField from '../../components/InputField';
 
-const GENDERS = ['Male', 'Female', 'Other']
+const GENDERS = ['Male', 'Female', 'Other'];
 
 const PatientsScreen: React.FC = () => {
-  const [patients, setPatients] = useState<Patient[]>([])
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [search, setSearch] = useState('')
-  const [searching, setSearching] = useState(false)
-  const [showModal, setShowModal] = useState(false)
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [search, setSearch] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   // New patient form
   const [form, setForm] = useState({
@@ -37,92 +37,103 @@ const PatientsScreen: React.FC = () => {
     phoneNumber: '',
     gender: 'Male',
     age: '',
-  })
-  const [formError, setFormError] = useState('')
-  const [creating, setCreating] = useState(false)
+  });
+  const [formError, setFormError] = useState('');
+  const [creating, setCreating] = useState(false);
 
   const getDobFromAge = (ageStr: string) => {
-    const ageNum = parseInt(ageStr, 10)
+    const ageNum = parseInt(ageStr, 10);
     if (isNaN(ageNum) || ageNum <= 0 || ageNum > 130) {
-      return '2000-01-01'
+      return '2000-01-01';
     }
-    const year = new Date().getFullYear() - ageNum
-    return `${year}-01-01`
-  }
+    const year = new Date().getFullYear() - ageNum;
+    return `${year}-01-01`;
+  };
 
   const fetchPatients = async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true)
-    else setLoading(true)
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
     try {
-      const res = await getPatients()
-      if (res.success) setPatients(res.data)
-    } catch {}
-    finally {
-      setLoading(false)
-      setRefreshing(false)
+      const res = await getPatients();
+      if (res.success) setPatients(res.data);
+    } catch {
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-  }
+  };
 
-  useEffect(() => { fetchPatients() }, [])
+  useEffect(() => {
+    fetchPatients();
+  }, []);
 
   const handleSearch = async (val: string) => {
-    setSearch(val)
+    setSearch(val);
     if (!val.trim()) {
-      fetchPatients()
-      return
+      fetchPatients();
+      return;
     }
     // Search by phone only when it looks like a phone number
     if (/^\d{5,}$/.test(val.trim())) {
-      setSearching(true)
+      setSearching(true);
       try {
-        const res = await searchPatients(val.trim())
-        if (res.success) setPatients(res.data)
-      } catch {}
-      finally {
-        setSearching(false)
+        const res = await searchPatients(val.trim());
+        if (res.success) setPatients(res.data);
+      } catch {
+      } finally {
+        setSearching(false);
       }
     } else {
       // Local name filter
       setPatients(prev =>
-        prev.filter(p => p.name.toLowerCase().includes(val.toLowerCase()))
-      )
+        prev.filter(p => p.name.toLowerCase().includes(val.toLowerCase())),
+      );
     }
-  }
+  };
 
   const handleCreate = async () => {
-    if (!form.name.trim()) { setFormError('Name is required.'); return }
-    if (!form.phoneNumber.trim()) { setFormError('Phone number is required.'); return }
-    if (!form.age.trim()) { setFormError('Age is required.'); return }
-    setFormError('')
-    setCreating(true)
+    if (!form.name.trim()) {
+      setFormError('Name is required.');
+      return;
+    }
+    if (!form.phoneNumber.trim()) {
+      setFormError('Phone number is required.');
+      return;
+    }
+    if (!form.age.trim()) {
+      setFormError('Age is required.');
+      return;
+    }
+    setFormError('');
+    setCreating(true);
     try {
       const res = await createPatient({
         name: form.name.trim(),
         phoneNumber: form.phoneNumber.trim(),
         gender: form.gender,
         dateOfBirth: getDobFromAge(form.age.trim()),
-      })
+      });
       if (res.success) {
-        setPatients(prev => [res.data, ...prev])
-        setShowModal(false)
-        setForm({ name: '', phoneNumber: '', gender: 'Male', age: '' })
+        setPatients(prev => [res.data, ...prev]);
+        setShowModal(false);
+        setForm({ name: '', phoneNumber: '', gender: 'Male', age: '' });
       }
     } catch (err: any) {
-      setFormError(err?.response?.data?.message || 'Failed to create patient.')
+      setFormError(err?.response?.data?.message || 'Failed to create patient.');
     } finally {
-      setCreating(false)
+      setCreating(false);
     }
-  }
+  };
 
   const getAge = (dob: string) => {
-    if (!dob) return ''
-    const diff = Date.now() - new Date(dob).getTime()
-    const years = Math.floor(diff / (365.25 * 24 * 3600 * 1000))
-    if (years > 0) return `${years} yrs`
-    const months = Math.floor(diff / (30.44 * 24 * 3600 * 1000))
-    if (months > 0) return `${months} mo`
-    return ''
-  }
+    if (!dob) return '';
+    const diff = Date.now() - new Date(dob).getTime();
+    const years = Math.floor(diff / (365.25 * 24 * 3600 * 1000));
+    if (years > 0) return `${years} yrs`;
+    const months = Math.floor(diff / (30.44 * 24 * 3600 * 1000));
+    if (months > 0) return `${months} mo`;
+    return '';
+  };
 
   const renderItem = ({ item }: { item: Patient }) => (
     <View style={styles.card}>
@@ -131,32 +142,45 @@ const PatientsScreen: React.FC = () => {
         style={styles.avatar}
       />
       <View style={styles.info}>
-        <Text style={styles.patientName}>{item.name}</Text>
-        <Text style={styles.meta}>
-          {item.phoneNumber}  •  {item.gender}  •  {getAge(item.dateOfBirth)}
+        <Text allowFontScaling={false} style={styles.patientName}>
+          {item.name}
         </Text>
-        <Text style={styles.refId}>{item.referenceId}</Text>
+        <Text allowFontScaling={false} style={styles.meta}>
+          {item.phoneNumber} • {item.gender} • {getAge(item.dateOfBirth)}
+        </Text>
+        <Text allowFontScaling={false} style={styles.refId}>
+          {item.referenceId}
+        </Text>
       </View>
     </View>
-  )
+  );
 
   return (
     <SafeAreaView style={styles.safe}>
       {/* Search + Add */}
       <View style={styles.topRow}>
         <TextInput
+          allowFontScaling={false}
           style={styles.searchInput}
           value={search}
           onChangeText={handleSearch}
           placeholder="Search by name or phone..."
           placeholderTextColor={colors.placeholder}
         />
-        {searching && <ActivityIndicator size="small" color={colors.primary} style={styles.searchSpinner} />}
+        {searching && (
+          <ActivityIndicator
+            size="small"
+            color={colors.primary}
+            style={styles.searchSpinner}
+          />
+        )}
         <TouchableOpacity
           style={styles.addBtn}
           onPress={() => setShowModal(true)}
         >
-          <Text style={styles.addBtnText}>+ Add</Text>
+          <Text allowFontScaling={false} style={styles.addBtnText}>
+            + Add
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -166,7 +190,9 @@ const PatientsScreen: React.FC = () => {
         </View>
       ) : patients.length === 0 ? (
         <View style={styles.centered}>
-          <Text style={styles.emptyText}>No patients found.</Text>
+          <Text allowFontScaling={false} style={styles.emptyText}>
+            No patients found.
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -196,14 +222,23 @@ const PatientsScreen: React.FC = () => {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Add New Patient</Text>
+            <Text allowFontScaling={false} style={styles.modalTitle}>
+              Add New Patient
+            </Text>
             <TouchableOpacity onPress={() => setShowModal(false)}>
-              <Text style={styles.closeBtn}>✕</Text>
+              <Text allowFontScaling={false} style={styles.closeBtn}>
+                ✕
+              </Text>
             </TouchableOpacity>
           </View>
-          <ScrollView contentContainerStyle={styles.modalContent} keyboardShouldPersistTaps="handled">
+          <ScrollView
+            contentContainerStyle={styles.modalContent}
+            keyboardShouldPersistTaps="handled"
+          >
             {formError ? (
-              <Text style={styles.formError}>{formError}</Text>
+              <Text allowFontScaling={false} style={styles.formError}>
+                {formError}
+              </Text>
             ) : null}
             <InputField
               label="Full Name"
@@ -220,7 +255,9 @@ const PatientsScreen: React.FC = () => {
               keyboardType="phone-pad"
             />
             <View style={styles.genderRow}>
-              <Text style={styles.fieldLabel}>Gender</Text>
+              <Text allowFontScaling={false} style={styles.fieldLabel}>
+                Gender
+              </Text>
               <View style={styles.genderOptions}>
                 {GENDERS.map(g => (
                   <TouchableOpacity
@@ -246,7 +283,9 @@ const PatientsScreen: React.FC = () => {
             <InputField
               label="Age (Years)"
               value={form.age}
-              onChangeText={v => setForm(f => ({ ...f, age: v.replace(/\D/g, '').slice(0, 3) }))}
+              onChangeText={v =>
+                setForm(f => ({ ...f, age: v.replace(/\D/g, '').slice(0, 3) }))
+              }
               placeholder="e.g. 28"
               keyboardType="numeric"
             />
@@ -261,8 +300,8 @@ const PatientsScreen: React.FC = () => {
         </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.pageBg },
@@ -294,7 +333,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: radius.md,
   },
-  addBtnText: { color: colors.white, fontFamily: fonts.semiBold, fontSize: typography.fontSizeSm },
+  addBtnText: {
+    color: colors.white,
+    fontFamily: fonts.semiBold,
+    fontSize: typography.fontSizeSm,
+  },
   list: { padding: spacing.base, gap: spacing.sm },
   card: {
     flexDirection: 'row',
@@ -315,8 +358,16 @@ const styles = StyleSheet.create({
     marginRight: spacing.md,
   },
   info: { flex: 1 },
-  patientName: { fontSize: typography.fontSizeBase, fontFamily: fonts.semiBold, color: colors.textPrimary },
-  meta: { fontSize: typography.fontSizeXs, color: colors.textSecondary, marginTop: 2 },
+  patientName: {
+    fontSize: typography.fontSizeBase,
+    fontFamily: fonts.semiBold,
+    color: colors.textPrimary,
+  },
+  meta: {
+    fontSize: typography.fontSizeXs,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
   refId: { fontSize: 11, color: colors.textMuted, marginTop: 1 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyText: { fontSize: typography.fontSizeBase, color: colors.textMuted },
@@ -329,7 +380,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  modalTitle: { fontSize: typography.fontSizeLg, fontFamily: fonts.bold, color: colors.textPrimary },
+  modalTitle: {
+    fontSize: typography.fontSizeLg,
+    fontFamily: fonts.bold,
+    color: colors.textPrimary,
+  },
   closeBtn: { fontSize: 20, color: colors.textSecondary, padding: spacing.xs },
   modalContent: { padding: spacing.base },
   formError: {
@@ -341,7 +396,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.base,
   },
   genderRow: { marginBottom: spacing.base },
-  fieldLabel: { fontSize: typography.fontSizeSm, fontFamily: fonts.medium, color: colors.textSecondary, marginBottom: spacing.xs },
+  fieldLabel: {
+    fontSize: typography.fontSizeSm,
+    fontFamily: fonts.medium,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
   genderOptions: { flexDirection: 'row', gap: spacing.sm },
   genderOption: {
     paddingVertical: spacing.sm,
@@ -351,10 +411,16 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.inputBg,
   },
-  genderOptionActive: { backgroundColor: colors.primaryLight, borderColor: colors.primary },
-  genderOptionText: { fontSize: typography.fontSizeSm, color: colors.textSecondary },
+  genderOptionActive: {
+    backgroundColor: colors.primaryLight,
+    borderColor: colors.primary,
+  },
+  genderOptionText: {
+    fontSize: typography.fontSizeSm,
+    color: colors.textSecondary,
+  },
   genderOptionTextActive: { color: colors.primary, fontFamily: fonts.semiBold },
   submitBtn: { marginTop: spacing.sm },
-})
+});
 
-export default PatientsScreen
+export default PatientsScreen;

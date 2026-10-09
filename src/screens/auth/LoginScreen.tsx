@@ -12,11 +12,10 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/types';
 import { useAppContext } from '../../context/AppContext';
-import { login, getContexts, switchContext } from '../../services/api';
+import { login, getContexts } from '../../services/api';
 import type { UserContext } from '../../services/types';
 import InputField from '../../components/InputField';
 import Button from '../../components/Button';
-import Toast from '../../components/Toast';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, typography, radius, fonts } from '../../styles/theme';
@@ -24,19 +23,16 @@ import { SIZE } from '../../themes/sizes';
 import EmailIcon from '../../assets/icons/email-icon-2.svg';
 import LockIcon from '../../assets/icons/lock.svg';
 
-
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'> & {
   onLogin: (contexts: UserContext[], isNewAccount: boolean) => void;
 };
 
 const LoginScreen: React.FC<Props> = ({ onLogin }) => {
-  const { setTokens, setContexts, setActiveContext, setActiveDoctor } =
-    useAppContext();
+  const { setTokens, setContexts } = useAppContext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [toast, setToast] = useState<string | null>(null);
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -64,31 +60,6 @@ const LoginScreen: React.FC<Props> = ({ onLogin }) => {
         await AsyncStorage.setItem('pendingClinicSetup', 'true');
         onLogin(ctxRes.data, true);
         return;
-      }
-
-      if (ctxRes.data.length === 1) {
-        const ctx = ctxRes.data[0];
-        try {
-          const switched = await switchContext(ctx.role, ctx.medicalCenter.id);
-          if (switched.success) {
-            await setTokens(
-              switched.data.accessToken,
-              switched.data.refreshToken,
-            );
-            await setActiveContext({
-              role: ctx.role,
-              medicalCenter: switched.data.medicalCenter,
-            });
-            await setActiveDoctor(switched.data.doctor);
-            await AsyncStorage.setItem(
-              'selectedContextId',
-              ctx.medicalCenter.id,
-            );
-            setToast(`Switched to "${ctx.medicalCenter.name}" automatically.`);
-            setTimeout(() => onLogin(ctxRes.data, false), 1500);
-            return;
-          }
-        } catch {}
       }
 
       onLogin(ctxRes.data, false);
@@ -123,13 +94,19 @@ const LoginScreen: React.FC<Props> = ({ onLogin }) => {
 
           {/* Header */}
           <View style={styles.headerSection}>
-            <Text style={styles.title}>Login to Continue</Text>
-            <Text style={styles.subtitle}>
+            <Text allowFontScaling={false} style={styles.title}>
+              Login to Continue
+            </Text>
+            <Text allowFontScaling={false} style={styles.subtitle}>
               Enter your email address and password to login
             </Text>
           </View>
 
-          {error ? <Text style={styles.errorBanner}>{error}</Text> : null}
+          {error ? (
+            <Text allowFontScaling={false} style={styles.errorBanner}>
+              {error}
+            </Text>
+          ) : null}
 
           {/* Fields */}
           <View style={styles.fieldsSection}>
@@ -152,7 +129,9 @@ const LoginScreen: React.FC<Props> = ({ onLogin }) => {
             />
 
             <TouchableOpacity style={styles.forgotRow}>
-              <Text style={styles.forgotText}>Forgot password?</Text>
+              <Text allowFontScaling={false} style={styles.forgotText}>
+                Forgot password?
+              </Text>
             </TouchableOpacity>
 
             <Button
@@ -163,20 +142,15 @@ const LoginScreen: React.FC<Props> = ({ onLogin }) => {
               style={styles.loginBtn}
             />
 
-            <Text style={styles.helpText}>
+            <Text allowFontScaling={false} style={styles.helpText}>
               Having trouble logging in?{' '}
-              <Text style={styles.helpLink}>Contact Us</Text>
+              <Text allowFontScaling={false} style={styles.helpLink}>
+                Contact Us
+              </Text>
             </Text>
           </View>
         </ScrollView>
 
-        {toast && (
-          <Toast
-            message={toast}
-            type="success"
-            onClose={() => setToast(null)}
-          />
-        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

@@ -35,7 +35,7 @@ export * from './types';
 
 // ─── Base URL ────────────────────────────────────────────────────────────────
 // Replace with your actual API base URL or load from a config/env file
-// const BASE_URL = 'https://aptly-server.onrender.com/api' //dev
+// const BASE_URL = 'https://aptly-server.onrender.com/api'; //dev
 const BASE_URL = 'https://api.aptly.care/api'; //prod
 
 const client = axios.create({

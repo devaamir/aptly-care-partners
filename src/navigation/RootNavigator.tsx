@@ -1,20 +1,34 @@
-import React, { useState } from 'react'
-import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native'
-import { NavigationContainer } from '@react-navigation/native'
-import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { createBottomTabNavigator, BottomTabNavigationOptions } from '@react-navigation/bottom-tabs'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import type { SvgProps } from 'react-native-svg'
+import React, { useState } from 'react';
+import {
+  ActivityIndicator,
+  Platform,
+  Pressable,
+  StyleSheet,
+  View,
+} from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {
+  createBottomTabNavigator,
+  BottomTabNavigationOptions,
+  BottomTabBarButtonProps,
+} from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { SvgProps } from 'react-native-svg';
 
-import { useAppContext } from '../context/AppContext'
-import { colors, typography , fonts } from '../styles/theme'
+import { useAppContext } from '../context/AppContext';
+import { colors, typography, fonts } from '../styles/theme';
+import { SIZE } from '../themes/sizes';
 
-import DashboardIcon from '../assets/icons/dashboard-icon.svg'
-import AppointmentIcon from '../assets/icons/appointment-icon.svg'
-import QueueIcon from '../assets/icons/quemanagment-icon.svg'
-import DoctorsIcon from '../assets/icons/doctors-icon.svg'
-import PatientsIcon from '../assets/icons/patients-icon.svg'
+import DashboardIcon from '../assets/icons/dashboard-icon.svg';
+import DashboardSelectedIcon from '../assets/icons/dashboard-selected.svg';
+import AppointmentIcon from '../assets/icons/appointment-icon.svg';
+import AppointmentSelected from '../assets/icons/appointment-selected.svg';
+import QueueIcon from '../assets/icons/quemanagment-icon.svg';
+import DoctorsIcon from '../assets/icons/doctors-icon.svg';
+import DoctorsSelected from '../assets/icons/doctors-selected.svg';
+import PatientsIcon from '../assets/icons/patients-icon.svg';
 
 import type {
   RootStackParamList,
@@ -23,48 +37,67 @@ import type {
   DoctorTabParamList,
   ManagerStackParamList,
   DoctorStackParamList,
-} from './types'
-import type { UserContext } from '../services/types'
+} from './types';
+import type { UserContext } from '../services/types';
 
 // Screens
-import LoginScreen from '../screens/auth/LoginScreen'
-import SetPasswordScreen from '../screens/auth/SetPasswordScreen'
-import SelectProfileScreen from '../screens/main/SelectProfileScreen'
-import DashboardScreen from '../screens/main/DashboardScreen'
-import AppointmentsScreen from '../screens/main/AppointmentsScreen'
-import QueueScreen from '../screens/main/QueueScreen'
-import DoctorsScreen from '../screens/main/DoctorsScreen'
-import PatientsScreen from '../screens/main/PatientsScreen'
-import SettingsScreen from '../screens/main/SettingsScreen'
+import LoginScreen from '../screens/auth/LoginScreen';
+import SetPasswordScreen from '../screens/auth/SetPasswordScreen';
+import SelectProfileScreen from '../screens/main/SelectProfileScreen';
+import DashboardScreen from '../screens/main/DashboardScreen';
+import AppointmentsScreen from '../screens/main/AppointmentsScreen';
+import QueueScreen from '../screens/main/QueueScreen';
+import DoctorsScreen from '../screens/main/DoctorsScreen';
+import PatientsScreen from '../screens/main/PatientsScreen';
+import SettingsScreen from '../screens/main/SettingsScreen';
 
-const AuthStack = createNativeStackNavigator<AuthStackParamList>()
-const RootStack = createNativeStackNavigator<RootStackParamList>()
-const MainTab = createBottomTabNavigator<MainTabParamList>()
-const DoctorTab = createBottomTabNavigator<DoctorTabParamList>()
-const ManagerStack = createNativeStackNavigator<ManagerStackParamList>()
-const DoctorStack = createNativeStackNavigator<DoctorStackParamList>()
+const AuthStack = createNativeStackNavigator<AuthStackParamList>();
+const RootStack = createNativeStackNavigator<RootStackParamList>();
+const MainTab = createBottomTabNavigator<MainTabParamList>();
+const DoctorTab = createBottomTabNavigator<DoctorTabParamList>();
+const ManagerStack = createNativeStackNavigator<ManagerStackParamList>();
+const DoctorStack = createNativeStackNavigator<DoctorStackParamList>();
 
 // ─── Tab Icon Component & Options ─────────────────────────────────────────────
-const ICON_SIZE = 20
+const ICON_SIZE = SIZE(24);
 
 interface TabIconProps {
-  Icon: React.FC<SvgProps>
-  focused: boolean
-  color: string
+  Icon: React.FC<SvgProps>;
+  focused?: boolean;
+  color: string;
 }
 
-function TabIcon({ Icon, focused, color }: TabIconProps) {
+function TabIcon({ Icon, color }: TabIconProps) {
   return (
-    <View style={[styles.tabIconWrapper, focused && styles.tabIconWrapperActive]}>
+    <View style={styles.tabIconWrapper}>
       <Icon width={ICON_SIZE} height={ICON_SIZE} stroke={color} color={color} />
     </View>
-  )
+  );
+}
+
+function TabBarButton(props: BottomTabBarButtonProps) {
+  const focused = Boolean(
+    (props as any)['aria-selected'] ?? props.accessibilityState?.selected,
+  );
+  return (
+    <Pressable
+      {...props}
+      style={[
+        props.style,
+        styles.tabBarButton,
+        focused && styles.tabBarButtonActive,
+      ]}
+    />
+  );
 }
 
 function useTabScreenOptions(): BottomTabNavigationOptions {
-  const insets = useSafeAreaInsets()
-  const bottomPadding = Math.max(insets.bottom, Platform.OS === 'ios' ? 28 : 16)
-  const tabHeight = 62 + bottomPadding
+  const insets = useSafeAreaInsets();
+  const bottomPadding = Math.max(
+    insets.bottom,
+    Platform.OS === 'ios' ? 28 : 16,
+  );
+  const tabHeight = 62 + bottomPadding;
 
   return {
     tabBarActiveTintColor: '#2879E4',
@@ -74,8 +107,9 @@ function useTabScreenOptions(): BottomTabNavigationOptions {
       borderTopColor: colors.border,
       borderTopWidth: 1,
       height: tabHeight,
-      paddingTop: 8,
+      paddingTop: 0,
       paddingBottom: bottomPadding,
+      paddingHorizontal: 12,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: -2 },
       shadowOpacity: 0.04,
@@ -90,13 +124,14 @@ function useTabScreenOptions(): BottomTabNavigationOptions {
     tabBarItemStyle: {
       paddingVertical: 2,
     },
+    tabBarButton: props => <TabBarButton {...props} />,
     headerShown: false,
-  }
+  };
 }
 
 // ─── Manager Tabs ─────────────────────────────────────────────────────────────
 function ManagerTabs() {
-  const tabScreenOptions = useTabScreenOptions()
+  const tabScreenOptions = useTabScreenOptions();
   return (
     <MainTab.Navigator screenOptions={tabScreenOptions}>
       <MainTab.Screen
@@ -104,7 +139,11 @@ function ManagerTabs() {
         component={DashboardScreen}
         options={{
           tabBarIcon: ({ focused, color }) => (
-            <TabIcon Icon={DashboardIcon} focused={focused} color={color} />
+            <TabIcon
+              Icon={focused ? DashboardSelectedIcon : DashboardIcon}
+              focused={focused}
+              color={color}
+            />
           ),
         }}
       />
@@ -113,7 +152,11 @@ function ManagerTabs() {
         component={AppointmentsScreen}
         options={{
           tabBarIcon: ({ focused, color }) => (
-            <TabIcon Icon={AppointmentIcon} focused={focused} color={color} />
+            <TabIcon
+              Icon={focused ? AppointmentSelected : AppointmentIcon}
+              focused={focused}
+              color={color}
+            />
           ),
         }}
       />
@@ -131,7 +174,11 @@ function ManagerTabs() {
         component={DoctorsScreen}
         options={{
           tabBarIcon: ({ focused, color }) => (
-            <TabIcon Icon={DoctorsIcon} focused={focused} color={color} />
+            <TabIcon
+              Icon={focused ? DoctorsSelected : DoctorsIcon}
+              focused={focused}
+              color={color}
+            />
           ),
         }}
       />
@@ -144,12 +191,12 @@ function ManagerTabs() {
         }}
       />
     </MainTab.Navigator>
-  )
+  );
 }
 
 // ─── Doctor Tabs ──────────────────────────────────────────────────────────────
 function DoctorTabs() {
-  const tabScreenOptions = useTabScreenOptions()
+  const tabScreenOptions = useTabScreenOptions();
   return (
     <DoctorTab.Navigator screenOptions={tabScreenOptions}>
       <DoctorTab.Screen
@@ -158,7 +205,11 @@ function DoctorTabs() {
         options={{
           title: 'Dashboard',
           tabBarIcon: ({ focused, color }) => (
-            <TabIcon Icon={DashboardIcon} focused={focused} color={color} />
+            <TabIcon
+              Icon={focused ? DashboardSelectedIcon : DashboardIcon}
+              focused={focused}
+              color={color}
+            />
           ),
         }}
       />
@@ -181,11 +232,15 @@ function DoctorTabs() {
         }}
       />
     </DoctorTab.Navigator>
-  )
+  );
 }
 
 // ─── Manager Navigator (Tabs + Settings Stack) ────────────────────────────────
-function ManagerNavigator({ onSwitchProfile }: { onSwitchProfile: () => void }) {
+function ManagerNavigator({
+  onSwitchProfile,
+}: {
+  onSwitchProfile: () => void;
+}) {
   return (
     <ManagerStack.Navigator>
       <ManagerStack.Screen
@@ -206,7 +261,7 @@ function ManagerNavigator({ onSwitchProfile }: { onSwitchProfile: () => void }) 
         {() => <SettingsScreen onSwitchProfile={onSwitchProfile} />}
       </ManagerStack.Screen>
     </ManagerStack.Navigator>
-  )
+  );
 }
 
 // ─── Doctor Navigator (Tabs + Settings Stack) ─────────────────────────────────
@@ -231,11 +286,15 @@ function DoctorNavigator({ onSwitchProfile }: { onSwitchProfile: () => void }) {
         {() => <SettingsScreen onSwitchProfile={onSwitchProfile} />}
       </DoctorStack.Screen>
     </DoctorStack.Navigator>
-  )
+  );
 }
 
 // ─── Auth Navigator ────────────────────────────────────────────────────────────
-function AuthNavigator({ onLogin }: { onLogin: (contexts: UserContext[], isNew: boolean) => void }) {
+function AuthNavigator({
+  onLogin,
+}: {
+  onLogin: (contexts: UserContext[], isNew: boolean) => void;
+}) {
   return (
     <AuthStack.Navigator screenOptions={{ headerShown: false }}>
       <AuthStack.Screen name="Login">
@@ -247,82 +306,79 @@ function AuthNavigator({ onLogin }: { onLogin: (contexts: UserContext[], isNew: 
         options={{ headerShown: true, title: 'Set Password' }}
       />
     </AuthStack.Navigator>
-  )
+  );
 }
 
 // ─── Root Navigator ────────────────────────────────────────────────────────────
-type AppScreen =
-  | 'auth'
-  | 'select-profile'
-  | 'create-clinic'
-  | 'main'
+type AppScreen = 'auth' | 'select-profile' | 'create-clinic' | 'main';
 
 export default function RootNavigator() {
-  const { isInitialized, accessToken, activeContext, logout } = useAppContext()
-  const [screen, setScreen] = useState<AppScreen | null>(null)
+  const { isInitialized, accessToken, activeContext, logout } = useAppContext();
+  const [screen, setScreen] = useState<AppScreen | null>(null);
 
   // Determine initial screen after context rehydrated
   React.useEffect(() => {
-    if (!isInitialized) return
+    if (!isInitialized) return;
     const init = async () => {
       if (!accessToken) {
-        setScreen('auth')
-        return
+        setScreen('auth');
+        return;
       }
-      const pending = await AsyncStorage.getItem('pendingClinicSetup')
+      const pending = await AsyncStorage.getItem('pendingClinicSetup');
       if (pending === 'true') {
-        setScreen('create-clinic')
-        return
+        setScreen('create-clinic');
+        return;
       }
       if (activeContext) {
-        setScreen('main')
+        setScreen('main');
       } else {
-        setScreen('select-profile')
+        setScreen('select-profile');
       }
-    }
-    init()
-  }, [isInitialized, accessToken])
+    };
+    init();
+  }, [isInitialized, accessToken]);
 
   // Listen for logout (accessToken becomes null while screen is 'main')
   React.useEffect(() => {
     if (isInitialized && !accessToken && screen !== 'auth') {
-      setScreen('auth')
+      setScreen('auth');
     }
-  }, [accessToken])
+  }, [accessToken]);
 
   if (!isInitialized || screen === null) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
-    )
+    );
   }
 
   const handleLogin = async (_contexts: UserContext[], isNew: boolean) => {
     if (isNew) {
-      await AsyncStorage.setItem('pendingClinicSetup', 'true')
-      setScreen('create-clinic')
+      await AsyncStorage.setItem('pendingClinicSetup', 'true');
+      setScreen('create-clinic');
     } else if (activeContext) {
-      setScreen('main')
+      setScreen('main');
     } else {
-      setScreen('select-profile')
+      setScreen('select-profile');
     }
-  }
+  };
 
-  const handleProfileSelected = () => setScreen('main')
-  const handleSwitchProfile = () => setScreen('select-profile')
+  const handleProfileSelected = () => setScreen('main');
+  const handleSwitchProfile = () => setScreen('select-profile');
 
-  const isDoctor = activeContext?.role === 'doctor'
+  const isDoctor = activeContext?.role === 'doctor';
 
   return (
     <NavigationContainer>
-      {screen === 'auth' && (
-        <AuthNavigator onLogin={handleLogin} />
-      )}
+      {screen === 'auth' && <AuthNavigator onLogin={handleLogin} />}
       {screen === 'select-profile' && (
         <SelectProfileScreen
           onSelect={handleProfileSelected}
-          onBack={async () => { await logout(); setScreen('auth') }}
+          onBack={async () => {
+            await logout();
+            setScreen('auth');
+          }}
         />
       )}
       {screen === 'create-clinic' && (
@@ -331,13 +387,14 @@ export default function RootNavigator() {
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       )}
-      {screen === 'main' && (
-        isDoctor
-          ? <DoctorNavigator onSwitchProfile={handleSwitchProfile} />
-          : <ManagerNavigator onSwitchProfile={handleSwitchProfile} />
-      )}
+      {screen === 'main' &&
+        (isDoctor ? (
+          <DoctorNavigator onSwitchProfile={handleSwitchProfile} />
+        ) : (
+          <ManagerNavigator onSwitchProfile={handleSwitchProfile} />
+        ))}
     </NavigationContainer>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -347,15 +404,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tabIconWrapper: {
-    width: 46,
-    height: 28,
-    borderRadius: 14,
+    width: SIZE(24),
+    height: SIZE(24),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'transparent',
   },
-  tabIconWrapperActive: {
-    backgroundColor: colors.primaryLight,
+  tabBarButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 0,
+    borderTopWidth: 2.5,
+    borderTopColor: 'transparent',
+    marginTop: -1,
+    paddingTop: 8,
   },
-})
-
+  tabBarButtonActive: {
+    borderTopColor: '#2879E4',
+  },
+});

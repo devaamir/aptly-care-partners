@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -6,19 +6,19 @@ import {
   StyleSheet,
   type ViewStyle,
   type TextStyle,
-} from 'react-native'
-import { colors, typography, radius, spacing, fonts } from '../styles/theme'
-import { SIZE } from '../themes/sizes'
+} from 'react-native';
+import { colors, typography, radius, spacing, fonts } from '../styles/theme';
+import { SIZE } from '../themes/sizes';
 
 interface ButtonProps {
-  label: string
-  onPress: () => void
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost'
-  loading?: boolean
-  disabled?: boolean
-  style?: ViewStyle
-  textStyle?: TextStyle
-  fullWidth?: boolean
+  label: string;
+  onPress: () => void;
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  loading?: boolean;
+  disabled?: boolean;
+  style?: ViewStyle;
+  textStyle?: TextStyle;
+  fullWidth?: boolean;
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -31,7 +31,7 @@ const Button: React.FC<ButtonProps> = ({
   textStyle,
   fullWidth = false,
 }) => {
-  const isDisabled = disabled || loading
+  const isDisabled = disabled || loading;
 
   return (
     <TouchableOpacity
@@ -52,13 +52,16 @@ const Button: React.FC<ButtonProps> = ({
           size="small"
         />
       ) : (
-        <Text style={[styles.label, styles[`${variant}Label`], textStyle]}>
+        <Text
+          allowFontScaling={false}
+          style={[styles.label, styles[`${variant}Label`], textStyle]}
+        >
           {label}
         </Text>
       )}
     </TouchableOpacity>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   base: {
@@ -105,6 +108,6 @@ const styles = StyleSheet.create({
   ghostLabel: {
     color: colors.textPrimary,
   },
-})
+});
 
-export default Button
+export default Button;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,27 +7,27 @@ import {
   StyleSheet,
   type KeyboardTypeOptions,
   type ViewStyle,
-} from 'react-native'
-import { colors, typography, spacing, radius, fonts } from '../styles/theme'
-import { SIZE } from '../themes/sizes'
-import SecurityEyeIcon from '../assets/icons/security-eye.svg'
+} from 'react-native';
+import { colors, typography, spacing, radius, fonts } from '../styles/theme';
+import { SIZE } from '../themes/sizes';
+import SecurityEyeIcon from '../assets/icons/security-eye.svg';
 
 interface InputFieldProps {
-  label?: string
-  value: string
-  onChangeText: (text: string) => void
-  placeholder?: string
-  secureTextEntry?: boolean
-  keyboardType?: KeyboardTypeOptions
-  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
-  autoCorrect?: boolean
-  editable?: boolean
-  multiline?: boolean
-  numberOfLines?: number
-  error?: string
-  style?: ViewStyle
-  rightElement?: React.ReactNode
-  leftIcon?: React.ReactNode
+  label?: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  placeholder?: string;
+  secureTextEntry?: boolean;
+  keyboardType?: KeyboardTypeOptions;
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  autoCorrect?: boolean;
+  editable?: boolean;
+  multiline?: boolean;
+  numberOfLines?: number;
+  error?: string;
+  style?: ViewStyle;
+  rightElement?: React.ReactNode;
+  leftIcon?: React.ReactNode;
 }
 
 const InputField: React.FC<InputFieldProps> = ({
@@ -47,15 +47,20 @@ const InputField: React.FC<InputFieldProps> = ({
   rightElement,
   leftIcon,
 }) => {
-  const [showPassword, setShowPassword] = useState(false)
-  const isPassword = secureTextEntry
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = secureTextEntry;
 
   return (
     <View style={[styles.container, style]}>
-      {label ? <Text style={styles.label}>{label}</Text> : null}
+      {label ? (
+        <Text allowFontScaling={false} style={styles.label}>
+          {label}
+        </Text>
+      ) : null}
       <View style={[styles.inputWrapper, error ? styles.inputError : null]}>
         {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
         <TextInput
+          allowFontScaling={false}
           style={[
             styles.input,
             multiline && styles.multiline,
@@ -79,20 +84,21 @@ const InputField: React.FC<InputFieldProps> = ({
             onPress={() => setShowPassword(v => !v)}
             style={styles.eyeButton}
           >
-            <SecurityEyeIcon
-              width={20}
-              height={20}
-            />
+            <SecurityEyeIcon width={20} height={20} />
           </TouchableOpacity>
         )}
         {rightElement && !isPassword && (
           <View style={styles.rightElement}>{rightElement}</View>
         )}
       </View>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error ? (
+        <Text allowFontScaling={false} style={styles.errorText}>
+          {error}
+        </Text>
+      ) : null}
     </View>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -146,6 +152,6 @@ const styles = StyleSheet.create({
     color: colors.danger,
     marginTop: spacing.xs,
   },
-})
+});
 
-export default InputField
+export default InputField;

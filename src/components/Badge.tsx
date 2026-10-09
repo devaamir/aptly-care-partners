@@ -1,12 +1,12 @@
-import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
-import { colors, typography, spacing, radius, fonts } from '../styles/theme'
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { colors, typography, spacing, radius, fonts } from '../styles/theme';
 
-type BadgeVariant = 'success' | 'danger' | 'warning' | 'info' | 'default'
+type BadgeVariant = 'success' | 'danger' | 'warning' | 'info' | 'default';
 
 interface BadgeProps {
-  label: string
-  variant?: BadgeVariant
+  label: string;
+  variant?: BadgeVariant;
 }
 
 const variantStyles: Record<BadgeVariant, { bg: string; text: string }> = {
@@ -15,26 +15,34 @@ const variantStyles: Record<BadgeVariant, { bg: string; text: string }> = {
   warning: { bg: colors.warningLight, text: colors.warning },
   info: { bg: colors.primaryLight, text: colors.primary },
   default: { bg: '#F1F3F5', text: colors.textSecondary },
-}
+};
 
 export const tokenStatusVariant = (status: string): BadgeVariant => {
   switch (status) {
-    case 'done': return 'success'
-    case 'cancelled': case 'skipped': return 'danger'
-    case 'ongoing': return 'warning'
-    case 'pending': return 'info'
-    default: return 'default'
+    case 'done':
+      return 'success';
+    case 'cancelled':
+    case 'skipped':
+      return 'danger';
+    case 'ongoing':
+      return 'warning';
+    case 'pending':
+      return 'info';
+    default:
+      return 'default';
   }
-}
+};
 
 const Badge: React.FC<BadgeProps> = ({ label, variant = 'default' }) => {
-  const v = variantStyles[variant]
+  const v = variantStyles[variant];
   return (
     <View style={[styles.container, { backgroundColor: v.bg }]}>
-      <Text style={[styles.text, { color: v.text }]}>{label}</Text>
+      <Text allowFontScaling={false} style={[styles.text, { color: v.text }]}>
+        {label}
+      </Text>
     </View>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -48,6 +56,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.semiBold,
     textTransform: 'capitalize',
   },
-})
+});
 
-export default Badge
+export default Badge;
