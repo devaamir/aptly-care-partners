@@ -7,7 +7,8 @@ import {
   type ViewStyle,
   type TextStyle,
 } from 'react-native'
-import { colors, typography, radius, spacing } from '../styles/theme'
+import { colors, typography, radius, spacing, fonts } from '../styles/theme'
+import { SIZE } from '../themes/sizes'
 
 interface ButtonProps {
   label: string
@@ -89,8 +90,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   label: {
-    fontSize: typography.fontSizeBase,
-    fontWeight: typography.fontWeightSemibold,
+    fontSize: SIZE(14),
+    fontFamily: fonts.semiBold,
   },
   primaryLabel: {
     color: colors.white,

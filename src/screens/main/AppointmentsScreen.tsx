@@ -36,7 +36,8 @@ import type {
   CreatedAppointment,
 } from '../../services/types';
 import Badge, { tokenStatusVariant } from '../../components/Badge';
-import { colors, typography, spacing, radius } from '../../styles/theme';
+import { colors, typography, spacing, radius, fonts } from '../../styles/theme';
+import { SIZE } from '../../themes/sizes';
 import {
   SearchIcon,
   CalendarIcon,
@@ -44,6 +45,7 @@ import {
   AppointmentIcon,
   AddIconWhite,
   ArrowDownIcon,
+  TickIcon,
 } from '../../assets/icons';
 
 const doctorProfileImg = require('../../assets/images/doctor-profile.png');
@@ -579,14 +581,18 @@ const AppointmentsScreen: React.FC = () => {
       return;
     }
     if (selectedSchedule.remainingTokenCount <= 0) {
-      setBookingError('No tokens left for this session. Please select another slot.');
+      setBookingError(
+        'No tokens left for this session. Please select another slot.',
+      );
       return;
     }
     const [h, m] = selectedSchedule.stopTime.split(':').map(Number);
     const stopTimeDate = new Date();
     stopTimeDate.setHours(h, m, 0, 0);
     if (selectedBookingDate === getTodayStr() && new Date() > stopTimeDate) {
-      setBookingError('This session has already ended for today. Please pick an upcoming date or session.');
+      setBookingError(
+        'This session has already ended for today. Please pick an upcoming date or session.',
+      );
       return;
     }
 
@@ -709,8 +715,8 @@ const AppointmentsScreen: React.FC = () => {
               <View style={styles.metaDot} />
               <View style={styles.basicDateRow}>
                 <CalendarIcon
-                  width={11}
-                  height={11}
+                  width={SIZE(11)}
+                  height={SIZE(11)}
                   stroke={colors.textMuted}
                 />
                 <Text style={styles.basicDateText}>
@@ -731,7 +737,11 @@ const AppointmentsScreen: React.FC = () => {
                 { transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] },
               ]}
             >
-              <ArrowDownIcon width={12} height={12} stroke={colors.textMuted} />
+              <ArrowDownIcon
+                width={SIZE(12)}
+                height={SIZE(12)}
+                stroke={colors.textMuted}
+              />
             </View>
           </View>
         </View>
@@ -770,8 +780,8 @@ const AppointmentsScreen: React.FC = () => {
               <View style={styles.metaRow}>
                 <View style={styles.metaItem}>
                   <ClockBlueIcon
-                    width={13}
-                    height={13}
+                    width={SIZE(13)}
+                    height={SIZE(13)}
                     stroke={colors.textSecondary}
                   />
                   <Text style={styles.metaText}>
@@ -845,15 +855,6 @@ const AppointmentsScreen: React.FC = () => {
       <View style={styles.header}>
         <View style={styles.headerTopRow}>
           <Text style={styles.headerTitle}>Appointments</Text>
-
-          <TouchableOpacity
-            style={styles.addAppointmentBtn}
-            onPress={handleOpenBookingModal}
-            activeOpacity={0.8}
-          >
-            <AddIconWhite width={16} height={16} />
-            <Text style={styles.addAppointmentBtnText}>New Appointment</Text>
-          </TouchableOpacity>
         </View>
       </View>
 
@@ -861,7 +862,11 @@ const AppointmentsScreen: React.FC = () => {
       <View style={styles.searchContainer}>
         <View style={styles.searchRow}>
           <View style={styles.searchBox}>
-            <SearchIcon width={16} height={16} stroke={colors.textMuted} />
+            <SearchIcon
+              width={SIZE(16)}
+              height={SIZE(16)}
+              stroke={colors.textMuted}
+            />
             <TextInput
               style={styles.searchInput}
               value={search}
@@ -899,8 +904,8 @@ const AppointmentsScreen: React.FC = () => {
                 : 'Status'}
             </Text>
             <ArrowDownIcon
-              width={12}
-              height={12}
+              width={SIZE(12)}
+              height={SIZE(12)}
               stroke={statusFilter ? colors.primary : colors.textSecondary}
             />
           </TouchableOpacity>
@@ -933,8 +938,8 @@ const AppointmentsScreen: React.FC = () => {
               >
                 {tab.id === 'Date Range' && (
                   <CalendarIcon
-                    width={13}
-                    height={13}
+                    width={SIZE(13)}
+                    height={SIZE(13)}
                     stroke={isActive ? colors.white : colors.textSecondary}
                   />
                 )}
@@ -976,7 +981,11 @@ const AppointmentsScreen: React.FC = () => {
       ) : filtered.length === 0 ? (
         <View style={styles.centered}>
           <View style={styles.emptyIconCircle}>
-            <AppointmentIcon width={28} height={28} stroke={colors.textMuted} />
+            <AppointmentIcon
+              width={SIZE(28)}
+              height={SIZE(28)}
+              stroke={colors.textMuted}
+            />
           </View>
           <Text style={styles.emptyTitle}>No appointments found</Text>
           <Text style={styles.emptySubtitle}>
@@ -984,7 +993,7 @@ const AppointmentsScreen: React.FC = () => {
               ? 'Try adjusting your date selection, search query, or status filter.'
               : 'There are no appointments registered for today.'}
           </Text>
-          {search || statusFilter || dateFilter !== 'Today' ? (
+          {(search || statusFilter || dateFilter !== 'Today') && (
             <TouchableOpacity
               style={styles.resetButton}
               onPress={() => {
@@ -997,14 +1006,6 @@ const AppointmentsScreen: React.FC = () => {
               activeOpacity={0.7}
             >
               <Text style={styles.resetButtonText}>Reset to Today</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              style={styles.resetButton}
-              onPress={handleOpenBookingModal}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.resetButtonText}>+ Book Appointment</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -1168,7 +1169,13 @@ const AppointmentsScreen: React.FC = () => {
                     >
                       {opt.label}
                     </Text>
-                    {isSelected && <Text style={styles.checkmarkText}>✓</Text>}
+                    {isSelected && (
+                      <TickIcon
+                        width={SIZE(14)}
+                        height={SIZE(14)}
+                        color={colors.primary}
+                      />
+                    )}
                   </TouchableOpacity>
                 );
               })}
@@ -1445,7 +1452,9 @@ const AppointmentsScreen: React.FC = () => {
                       </View>
                     ) : (
                       <>
-                        <Text style={[styles.inputLabel, { marginTop: 12 }]}>
+                        <Text
+                          style={[styles.inputLabel, { marginTop: SIZE(12) }]}
+                        >
                           Patient Full Name{' '}
                           <Text style={styles.requiredAsterisk}>*</Text>
                         </Text>
@@ -1457,7 +1466,9 @@ const AppointmentsScreen: React.FC = () => {
                           placeholderTextColor={colors.placeholder}
                         />
 
-                        <Text style={[styles.inputLabel, { marginTop: 12 }]}>
+                        <Text
+                          style={[styles.inputLabel, { marginTop: SIZE(12) }]}
+                        >
                           Gender
                         </Text>
                         <View style={styles.genderRow}>
@@ -1484,7 +1495,9 @@ const AppointmentsScreen: React.FC = () => {
                           ))}
                         </View>
 
-                        <Text style={[styles.inputLabel, { marginTop: 12 }]}>
+                        <Text
+                          style={[styles.inputLabel, { marginTop: SIZE(12) }]}
+                        >
                           Age
                         </Text>
                         <TextInput
@@ -1682,8 +1695,8 @@ const AppointmentsScreen: React.FC = () => {
                               <View style={styles.scheduleCardTop}>
                                 <View style={styles.scheduleTimeRow}>
                                   <ClockBlueIcon
-                                    width={14}
-                                    height={14}
+                                    width={SIZE(14)}
+                                    height={SIZE(14)}
                                     stroke={
                                       isSelected
                                         ? colors.primary
@@ -1776,6 +1789,15 @@ const AppointmentsScreen: React.FC = () => {
           </KeyboardAvoidingView>
         </View>
       </Modal>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={handleOpenBookingModal}
+        activeOpacity={0.85}
+      >
+        <AddIconWhite width={24} height={24} />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -1783,16 +1805,16 @@ const AppointmentsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.pageBg,
   },
-  // Flat Header Bar
+  // Header Bar
   header: {
     backgroundColor: colors.white,
-    paddingHorizontal: spacing.base,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.sm,
+    paddingHorizontal: SIZE(22),
+    paddingTop: SIZE(12),
+    paddingBottom: SIZE(12),
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#EAECF0',
   },
   headerTopRow: {
     flexDirection: 'row',
@@ -1802,154 +1824,156 @@ const styles = StyleSheet.create({
   headerTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: SIZE(8),
   },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(22),
+    fontFamily: fonts.bold,
     color: colors.textPrimary,
     letterSpacing: -0.3,
   },
   countBadge: {
-    backgroundColor: colors.primaryLight,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    backgroundColor: '#F1F4F9',
+    paddingHorizontal: SIZE(8),
+    paddingVertical: SIZE(2),
     borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: '#D0E3FC',
   },
   countBadgeText: {
-    fontSize: 12,
-    fontWeight: typography.fontWeightBold,
-    color: colors.primary,
+    fontSize: SIZE(11),
+    fontFamily: fonts.bold,
+    color: colors.textSecondary,
   },
-  addAppointmentBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  fab: {
+    position: 'absolute',
+    bottom: SIZE(28),
+    right: SIZE(20),
+    width: SIZE(56),
+    height: SIZE(56),
+    borderRadius: SIZE(28),
     backgroundColor: colors.primary,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: radius.md,
-    gap: 7,
-  },
-  addAppointmentBtnText: {
-    color: colors.white,
-    fontSize: 14,
-    fontWeight: typography.fontWeightBold,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.22,
+    shadowRadius: 6,
+    elevation: 8,
   },
   headerSubtitle: {
-    fontSize: 13,
+    fontSize: SIZE(13),
+    fontFamily: fonts.regular,
     color: colors.textSecondary,
-    marginTop: 4,
+    marginTop: SIZE(4),
   },
   // Search
   searchContainer: {
     backgroundColor: colors.white,
-    paddingHorizontal: spacing.base,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.xs,
+    paddingHorizontal: SIZE(16),
+    paddingTop: SIZE(10),
+    paddingBottom: SIZE(8),
   },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: SIZE(8),
   },
   searchBox: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F1F5F9',
-    borderRadius: 10,
-    paddingHorizontal: spacing.md,
-    height: 42,
+    backgroundColor: colors.inputBg,
+    borderRadius: SIZE(10),
+    paddingHorizontal: SIZE(12),
+    height: SIZE(42),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    gap: 8,
+    borderColor: '#EAECF0',
+    gap: SIZE(8),
   },
   searchInput: {
     flex: 1,
-    fontSize: typography.fontSizeSm,
+    fontSize: SIZE(13),
+    fontFamily: fonts.regular,
     color: colors.textPrimary,
     paddingVertical: 0,
   },
   clearSearchText: {
-    fontSize: 13,
+    fontSize: SIZE(13),
     color: colors.textMuted,
-    fontWeight: typography.fontWeightBold,
-    padding: 2,
+    fontFamily: fonts.bold,
+    padding: SIZE(2),
   },
   statusFilterBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 42,
-    paddingHorizontal: 12,
-    borderRadius: 10,
+    height: SIZE(42),
+    paddingHorizontal: SIZE(12),
+    borderRadius: SIZE(10),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#F8FAFC',
-    gap: 6,
+    borderColor: '#EAECF0',
+    backgroundColor: colors.inputBg,
+    gap: SIZE(6),
   },
   statusFilterBtnActive: {
     backgroundColor: colors.primaryLight,
     borderColor: colors.primary,
   },
   statusFilterBtnText: {
-    fontSize: 12,
-    fontWeight: typography.fontWeightMedium,
+    fontSize: SIZE(12),
+    fontFamily: fonts.medium,
     color: colors.textSecondary,
   },
   statusFilterBtnTextActive: {
     color: colors.primary,
-    fontWeight: typography.fontWeightBold,
+    fontFamily: fonts.bold,
   },
-  // Single Line Date Filter Tabs
+  // Date Filter Tabs
   filterTabsContainer: {
     backgroundColor: colors.white,
-    paddingTop: spacing.xs,
-    paddingBottom: spacing.sm + 2,
+    paddingTop: SIZE(6),
+    paddingBottom: SIZE(10),
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#EAECF0',
   },
   filterScrollContent: {
-    paddingHorizontal: spacing.base,
-    gap: 8,
+    paddingHorizontal: SIZE(16),
+    gap: SIZE(8),
   },
   filterTab: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingVertical: SIZE(6),
+    paddingHorizontal: SIZE(12),
     borderRadius: radius.full,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.inputBg,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    gap: 6,
+    borderColor: '#EAECF0',
+    gap: SIZE(6),
   },
   filterTabActive: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
   filterTabText: {
-    fontSize: 12,
+    fontSize: SIZE(12),
+    fontFamily: fonts.medium,
     color: colors.textSecondary,
-    fontWeight: typography.fontWeightMedium,
   },
   filterTabTextActive: {
     color: colors.white,
-    fontWeight: typography.fontWeightBold,
+    fontFamily: fonts.bold,
   },
   filterTabCount: {
-    backgroundColor: '#E2E8F0',
-    paddingHorizontal: 6,
-    paddingVertical: 1,
+    backgroundColor: '#EAECF0',
+    paddingHorizontal: SIZE(6),
+    paddingVertical: SIZE(1),
     borderRadius: radius.full,
   },
   filterTabCountActive: {
     backgroundColor: 'rgba(255, 255, 255, 0.25)',
   },
   filterTabCountText: {
-    fontSize: 11,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(11),
+    fontFamily: fonts.bold,
     color: colors.textSecondary,
   },
   filterTabCountTextActive: {
@@ -1957,16 +1981,16 @@ const styles = StyleSheet.create({
   },
   // List
   listContainer: {
-    padding: spacing.base,
-    gap: 12,
+    padding: SIZE(16),
+    gap: SIZE(12),
   },
   // Appointment Card
   card: {
     backgroundColor: colors.white,
-    borderRadius: 14,
+    borderRadius: SIZE(14),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    padding: 14,
+    borderColor: '#EAECF0',
+    padding: SIZE(14),
   },
   cardExpanded: {
     borderColor: colors.primary,
@@ -1974,32 +1998,32 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: SIZE(12),
   },
   avatarWrap: {
     position: 'relative',
   },
   patientAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: SIZE(44),
+    height: SIZE(44),
+    borderRadius: SIZE(22),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#EAECF0',
   },
   tokenBadge: {
     position: 'absolute',
-    bottom: -4,
-    right: -4,
+    bottom: -SIZE(4),
+    right: -SIZE(4),
     backgroundColor: '#1E293B',
-    borderRadius: 6,
-    paddingHorizontal: 4,
-    paddingVertical: 1,
+    borderRadius: SIZE(6),
+    paddingHorizontal: SIZE(4),
+    paddingVertical: SIZE(1),
     borderWidth: 1,
     borderColor: colors.white,
   },
   tokenBadgeText: {
-    fontSize: 9,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(9),
+    fontFamily: fonts.bold,
     color: colors.white,
   },
   patientMetaCol: {
@@ -2009,54 +2033,55 @@ const styles = StyleSheet.create({
   patientNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: SIZE(6),
   },
   patientName: {
-    fontSize: 15,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(15),
+    fontFamily: fonts.bold,
     color: colors.textPrimary,
   },
   patientDetails: {
-    fontSize: 12,
+    fontSize: SIZE(12),
+    fontFamily: fonts.regular,
     color: colors.textSecondary,
-    marginTop: 2,
+    marginTop: SIZE(2),
   },
   basicMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginTop: 4,
+    gap: SIZE(6),
+    marginTop: SIZE(4),
     flexWrap: 'wrap',
   },
   basicDoctorText: {
-    fontSize: 12,
-    fontWeight: typography.fontWeightMedium,
+    fontSize: SIZE(12),
+    fontFamily: fonts.medium,
     color: colors.textSecondary,
-    maxWidth: 130,
+    maxWidth: SIZE(130),
   },
   basicDateRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: SIZE(4),
   },
   basicDateText: {
-    fontSize: 11,
+    fontSize: SIZE(11),
+    fontFamily: fonts.medium,
     color: colors.textMuted,
-    fontWeight: typography.fontWeightMedium,
   },
   headerRightCol: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: SIZE(6),
   },
   chevronWrap: {
-    width: 18,
-    height: 18,
+    width: SIZE(18),
+    height: SIZE(18),
     alignItems: 'center',
     justifyContent: 'center',
   },
   expandedContent: {
-    marginTop: 4,
+    marginTop: SIZE(4),
   },
   expandedRow: {
     flexDirection: 'row',
@@ -2064,19 +2089,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   expandedPatientText: {
-    fontSize: 12,
-    fontWeight: typography.fontWeightMedium,
+    fontSize: SIZE(12),
+    fontFamily: fonts.medium,
     color: colors.textPrimary,
   },
   // Info Box
   infoBox: {
-    marginTop: 12,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 10,
+    marginTop: SIZE(12),
+    backgroundColor: colors.pageBg,
+    borderRadius: SIZE(10),
     borderWidth: 1,
-    borderColor: '#EDF2F7',
-    padding: 10,
-    gap: 8,
+    borderColor: '#EAECF0',
+    padding: SIZE(10),
+    gap: SIZE(8),
   },
   doctorRow: {
     flexDirection: 'row',
@@ -2084,66 +2109,66 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   infoLabel: {
-    fontSize: 11,
-    fontWeight: typography.fontWeightMedium,
+    fontSize: SIZE(11),
+    fontFamily: fonts.medium,
     color: colors.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   doctorValue: {
-    fontSize: 13,
-    fontWeight: typography.fontWeightSemibold,
+    fontSize: SIZE(13),
+    fontFamily: fonts.semiBold,
     color: colors.textPrimary,
   },
   specialtyTag: {
-    fontSize: 12,
-    fontWeight: typography.fontWeightNormal,
+    fontSize: SIZE(12),
+    fontFamily: fonts.regular,
     color: colors.primary,
   },
   infoDivider: {
     height: 1,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#EAECF0',
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
-    gap: 6,
+    gap: SIZE(6),
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: SIZE(4),
   },
   metaText: {
-    fontSize: 12,
+    fontSize: SIZE(12),
+    fontFamily: fonts.medium,
     color: colors.textSecondary,
-    fontWeight: typography.fontWeightMedium,
   },
   metaDot: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
+    width: SIZE(3),
+    height: SIZE(3),
+    borderRadius: SIZE(2),
     backgroundColor: colors.textMuted,
   },
   refText: {
-    fontSize: 11,
+    fontSize: SIZE(11),
+    fontFamily: fonts.medium,
     color: colors.textMuted,
-    fontWeight: typography.fontWeightMedium,
   },
   // Action Buttons
   actionsRow: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 12,
-    paddingTop: 10,
+    gap: SIZE(8),
+    marginTop: SIZE(12),
+    paddingTop: SIZE(10),
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: '#F1F4F9',
   },
   actionBtn: {
     flex: 1,
-    paddingVertical: 9,
-    borderRadius: 8,
+    paddingVertical: SIZE(9),
+    borderRadius: SIZE(8),
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -2153,8 +2178,8 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
   actionOngoingText: {
-    fontSize: 12,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(12),
+    fontFamily: fonts.bold,
     color: colors.primary,
   },
   actionCancel: {
@@ -2162,8 +2187,8 @@ const styles = StyleSheet.create({
     borderColor: '#FECACA',
   },
   actionCancelText: {
-    fontSize: 12,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(12),
+    fontFamily: fonts.bold,
     color: colors.danger,
   },
   actionDone: {
@@ -2171,8 +2196,8 @@ const styles = StyleSheet.create({
     borderColor: colors.success,
   },
   actionDoneText: {
-    fontSize: 12,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(12),
+    fontFamily: fonts.bold,
     color: colors.white,
   },
   actionSkip: {
@@ -2180,8 +2205,8 @@ const styles = StyleSheet.create({
     borderColor: '#FDE68A',
   },
   actionSkipText: {
-    fontSize: 12,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(12),
+    fontFamily: fonts.bold,
     color: '#D97706',
   },
   // Centered & Empty States
@@ -2189,54 +2214,58 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: spacing.xl,
+    padding: SIZE(24),
   },
   loadingText: {
-    fontSize: 13,
+    fontSize: SIZE(13),
+    fontFamily: fonts.regular,
     color: colors.textSecondary,
-    marginTop: 10,
+    marginTop: SIZE(10),
   },
   emptyIconCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#E2E8F0',
+    width: SIZE(60),
+    height: SIZE(60),
+    borderRadius: SIZE(30),
+    backgroundColor: '#EAECF0',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: SIZE(12),
   },
   emptyTitle: {
-    fontSize: 16,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(16),
+    fontFamily: fonts.bold,
     color: colors.textPrimary,
-    marginBottom: 4,
+    marginBottom: SIZE(4),
   },
   emptySubtitle: {
-    fontSize: 13,
+    fontSize: SIZE(13),
+    fontFamily: fonts.regular,
     color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 18,
-    marginBottom: 16,
+    lineHeight: SIZE(18),
+    marginBottom: SIZE(16),
+    maxWidth: SIZE(240),
   },
   resetButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: SIZE(8),
+    paddingHorizontal: SIZE(16),
     borderRadius: radius.full,
     borderWidth: 1,
     borderColor: colors.primary,
     backgroundColor: colors.primaryLight,
   },
   resetButtonText: {
-    fontSize: 13,
-    fontWeight: typography.fontWeightSemibold,
+    fontSize: SIZE(13),
+    fontFamily: fonts.semiBold,
     color: colors.primary,
   },
   listFooter: {
-    paddingVertical: spacing.md,
+    paddingVertical: SIZE(12),
     alignItems: 'center',
   },
   listFooterText: {
-    fontSize: 12,
+    fontSize: SIZE(12),
+    fontFamily: fonts.regular,
     color: colors.textMuted,
   },
   // Range & Status Modal Styles
@@ -2245,17 +2274,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: spacing.base,
+    padding: SIZE(16),
   },
   rangeDialogBox: {
     backgroundColor: colors.white,
-    borderRadius: 16,
+    borderRadius: SIZE(16),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    padding: spacing.base,
+    borderColor: '#EAECF0',
+    padding: SIZE(16),
     width: '100%',
-    maxWidth: 380,
-    gap: 12,
+    maxWidth: SIZE(380),
+    gap: SIZE(12),
   },
   dialogHeader: {
     flexDirection: 'row',
@@ -2263,126 +2292,122 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   dialogTitle: {
-    fontSize: 16,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(16),
+    fontFamily: fonts.bold,
     color: colors.textPrimary,
   },
   dialogSubtitle: {
-    fontSize: 12,
+    fontSize: SIZE(12),
+    fontFamily: fonts.regular,
     color: colors.textSecondary,
-    marginTop: 2,
+    marginTop: SIZE(2),
   },
   dialogCloseBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#F1F5F9',
+    width: SIZE(28),
+    height: SIZE(28),
+    borderRadius: SIZE(14),
+    backgroundColor: '#F1F4F9',
     alignItems: 'center',
     justifyContent: 'center',
   },
   dialogCloseText: {
-    fontSize: 13,
+    fontSize: SIZE(13),
+    fontFamily: fonts.bold,
     color: colors.textSecondary,
-    fontWeight: typography.fontWeightBold,
   },
   presetLabel: {
-    fontSize: 11,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(11),
+    fontFamily: fonts.bold,
     color: colors.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginTop: 4,
+    marginTop: SIZE(4),
   },
   presetsRow: {
     flexDirection: 'row',
-    gap: 6,
+    gap: SIZE(6),
   },
   presetChip: {
     flex: 1,
-    paddingVertical: 7,
+    paddingVertical: SIZE(7),
     alignItems: 'center',
-    borderRadius: 8,
-    backgroundColor: '#F8FAFC',
+    borderRadius: SIZE(8),
+    backgroundColor: colors.inputBg,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#EAECF0',
   },
   presetChipText: {
-    fontSize: 11,
-    fontWeight: typography.fontWeightMedium,
+    fontSize: SIZE(11),
+    fontFamily: fonts.medium,
     color: colors.textSecondary,
   },
   customDateInputsRow: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 4,
+    gap: SIZE(8),
+    marginTop: SIZE(4),
   },
   dialogButtonsRow: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
+    gap: SIZE(8),
+    marginTop: SIZE(8),
   },
   dialogCancelBtn: {
     flex: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
+    paddingVertical: SIZE(10),
+    borderRadius: SIZE(8),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#EAECF0',
     alignItems: 'center',
   },
   dialogCancelText: {
-    fontSize: 13,
-    fontWeight: typography.fontWeightMedium,
+    fontSize: SIZE(13),
+    fontFamily: fonts.medium,
     color: colors.textSecondary,
   },
   dialogApplyBtn: {
     flex: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
+    paddingVertical: SIZE(10),
+    borderRadius: SIZE(8),
     backgroundColor: colors.primary,
     alignItems: 'center',
   },
   dialogApplyText: {
-    fontSize: 13,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(13),
+    fontFamily: fonts.bold,
     color: colors.white,
   },
   statusDialogBox: {
     backgroundColor: colors.white,
-    borderRadius: 16,
+    borderRadius: SIZE(16),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    padding: spacing.base,
+    borderColor: '#EAECF0',
+    padding: SIZE(16),
     width: '100%',
-    maxWidth: 320,
-    gap: 10,
+    maxWidth: SIZE(320),
+    gap: SIZE(10),
   },
   statusOptionsList: {
-    gap: 4,
+    gap: SIZE(4),
   },
   statusOptionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    paddingVertical: SIZE(10),
+    paddingHorizontal: SIZE(12),
+    borderRadius: SIZE(8),
   },
   statusOptionRowActive: {
     backgroundColor: colors.primaryLight,
   },
   statusOptionLabel: {
-    fontSize: 13,
+    fontSize: SIZE(13),
+    fontFamily: fonts.medium,
     color: colors.textPrimary,
-    fontWeight: typography.fontWeightMedium,
   },
   statusOptionLabelActive: {
     color: colors.primary,
-    fontWeight: typography.fontWeightBold,
-  },
-  checkmarkText: {
-    color: colors.primary,
-    fontSize: 14,
-    fontWeight: typography.fontWeightBold,
+    fontFamily: fonts.bold,
   },
   // Bottom Sheet Container & Overlay
   sheetOverlay: {
@@ -2399,96 +2424,97 @@ const styles = StyleSheet.create({
   },
   sheetContainer: {
     height: '88%',
-    backgroundColor: '#F8FAFC',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: colors.pageBg,
+    borderTopLeftRadius: SIZE(20),
+    borderTopRightRadius: SIZE(20),
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#EAECF0',
     overflow: 'hidden',
   },
   sheetHandleWrap: {
     alignItems: 'center',
-    paddingTop: 8,
-    paddingBottom: 4,
+    paddingTop: SIZE(8),
+    paddingBottom: SIZE(4),
     backgroundColor: colors.white,
   },
   sheetHandle: {
-    width: 38,
-    height: 4,
-    borderRadius: 2,
+    width: SIZE(38),
+    height: SIZE(4),
+    borderRadius: SIZE(2),
     backgroundColor: '#CBD5E1',
   },
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.base,
-    paddingTop: spacing.xs,
-    paddingBottom: spacing.md,
+    paddingHorizontal: SIZE(16),
+    paddingTop: SIZE(4),
+    paddingBottom: SIZE(12),
     backgroundColor: colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#EAECF0',
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(18),
+    fontFamily: fonts.bold,
     color: colors.textPrimary,
   },
   modalSubtitle: {
-    fontSize: 12,
+    fontSize: SIZE(12),
+    fontFamily: fonts.regular,
     color: colors.textSecondary,
-    marginTop: 2,
+    marginTop: SIZE(2),
   },
   modalCloseBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#F1F5F9',
+    width: SIZE(32),
+    height: SIZE(32),
+    borderRadius: SIZE(16),
+    backgroundColor: '#F1F4F9',
     alignItems: 'center',
     justifyContent: 'center',
   },
   modalCloseText: {
-    fontSize: 14,
+    fontSize: SIZE(14),
+    fontFamily: fonts.bold,
     color: colors.textSecondary,
-    fontWeight: typography.fontWeightBold,
   },
   modalScroll: {
-    padding: spacing.base,
-    paddingBottom: 24,
-    gap: 14,
+    padding: SIZE(16),
+    paddingBottom: SIZE(24),
+    gap: SIZE(14),
   },
   errorBanner: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: colors.dangerLight,
     borderWidth: 1,
     borderColor: '#FECACA',
-    borderRadius: 10,
-    padding: 12,
+    borderRadius: SIZE(10),
+    padding: SIZE(12),
   },
   errorText: {
-    fontSize: 12,
+    fontSize: SIZE(12),
+    fontFamily: fonts.medium,
     color: colors.danger,
-    fontWeight: typography.fontWeightMedium,
   },
   // Form Cards
   formCard: {
     backgroundColor: colors.white,
-    borderRadius: 14,
+    borderRadius: SIZE(14),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    padding: 14,
+    borderColor: '#EAECF0',
+    padding: SIZE(14),
   },
   formCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
+    gap: SIZE(8),
+    marginBottom: SIZE(12),
   },
   stepNumBadge: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: SIZE(22),
+    height: SIZE(22),
+    borderRadius: SIZE(11),
     backgroundColor: colors.primaryLight,
     borderWidth: 1,
     borderColor: '#D0E3FC',
@@ -2496,20 +2522,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   stepNumText: {
-    fontSize: 11,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(11),
+    fontFamily: fonts.bold,
     color: colors.primary,
   },
   formCardTitle: {
-    fontSize: 14,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(14),
+    fontFamily: fonts.bold,
     color: colors.textPrimary,
   },
   inputLabel: {
-    fontSize: 12,
-    fontWeight: typography.fontWeightMedium,
+    fontSize: SIZE(12),
+    fontFamily: fonts.medium,
     color: colors.textSecondary,
-    marginBottom: 6,
+    marginBottom: SIZE(6),
   },
   requiredAsterisk: {
     color: colors.danger,
@@ -2517,46 +2543,48 @@ const styles = StyleSheet.create({
   phoneInputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderRadius: 10,
+    backgroundColor: colors.inputBg,
+    borderRadius: SIZE(10),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#EAECF0',
     overflow: 'hidden',
   },
   phonePrefixBox: {
-    backgroundColor: '#EDF2F7',
-    paddingHorizontal: 12,
-    paddingVertical: 11,
+    backgroundColor: '#F1F4F9',
+    paddingHorizontal: SIZE(12),
+    paddingVertical: SIZE(11),
     borderRightWidth: 1,
-    borderRightColor: '#E2E8F0',
+    borderRightColor: '#EAECF0',
   },
   phonePrefixText: {
-    fontSize: 13,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(13),
+    fontFamily: fonts.bold,
     color: colors.textPrimary,
   },
   phoneInput: {
     flex: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 13,
+    paddingHorizontal: SIZE(12),
+    paddingVertical: SIZE(10),
+    fontSize: SIZE(13),
+    fontFamily: fonts.regular,
     color: colors.textPrimary,
   },
   inputSpinner: {
-    marginRight: 12,
+    marginRight: SIZE(12),
   },
   inputClearBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: SIZE(12),
+    paddingVertical: SIZE(8),
   },
   modalInput: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 10,
+    backgroundColor: colors.inputBg,
+    borderRadius: SIZE(10),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 13,
+    borderColor: '#EAECF0',
+    paddingHorizontal: SIZE(12),
+    paddingVertical: SIZE(10),
+    fontSize: SIZE(13),
+    fontFamily: fonts.regular,
     color: colors.textPrimary,
   },
   matchedPatientCard: {
@@ -2565,15 +2593,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#ECFDF5',
     borderWidth: 1,
     borderColor: '#A7F3D0',
-    borderRadius: 10,
-    padding: 10,
-    marginTop: 10,
-    gap: 10,
+    borderRadius: SIZE(10),
+    padding: SIZE(10),
+    marginTop: SIZE(10),
+    gap: SIZE(10),
   },
   matchedPatientAvatar: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: SIZE(38),
+    height: SIZE(38),
+    borderRadius: SIZE(19),
     borderWidth: 1,
     borderColor: '#A7F3D0',
   },
@@ -2581,111 +2609,113 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 6,
+    gap: SIZE(6),
   },
   matchedPatientName: {
-    fontSize: 13,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(13),
+    fontFamily: fonts.bold,
     color: '#065F46',
   },
   matchedTag: {
     backgroundColor: '#D1FAE5',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    paddingHorizontal: SIZE(6),
+    paddingVertical: SIZE(2),
+    borderRadius: SIZE(4),
   },
   matchedTagText: {
-    fontSize: 10,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(10),
+    fontFamily: fonts.bold,
     color: '#047857',
   },
   matchedPatientMeta: {
-    fontSize: 11,
+    fontSize: SIZE(11),
+    fontFamily: fonts.regular,
     color: '#047857',
-    marginTop: 2,
+    marginTop: SIZE(2),
   },
   genderRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: SIZE(8),
   },
   genderChip: {
     flex: 1,
-    paddingVertical: 9,
+    paddingVertical: SIZE(9),
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: SIZE(8),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#F8FAFC',
+    borderColor: '#EAECF0',
+    backgroundColor: colors.inputBg,
   },
   genderChipActive: {
     backgroundColor: colors.primaryLight,
     borderColor: colors.primary,
   },
   genderChipText: {
-    fontSize: 12,
+    fontSize: SIZE(12),
+    fontFamily: fonts.medium,
     color: colors.textSecondary,
-    fontWeight: typography.fontWeightMedium,
   },
   genderChipTextActive: {
     color: colors.primary,
-    fontWeight: typography.fontWeightBold,
+    fontFamily: fonts.bold,
   },
   // Doctor Selection in Modal
   doctorSingleCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderRadius: 10,
+    backgroundColor: colors.inputBg,
+    borderRadius: SIZE(10),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    padding: 10,
-    gap: 10,
+    borderColor: '#EAECF0',
+    padding: SIZE(10),
+    gap: SIZE(10),
   },
   doctorCardAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: SIZE(40),
+    height: SIZE(40),
+    borderRadius: SIZE(20),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#EAECF0',
   },
   doctorCardName: {
-    fontSize: 14,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(14),
+    fontFamily: fonts.bold,
     color: colors.textPrimary,
   },
   doctorCardSpecialty: {
-    fontSize: 12,
+    fontSize: SIZE(12),
+    fontFamily: fonts.regular,
     color: colors.textSecondary,
-    marginTop: 2,
+    marginTop: SIZE(2),
   },
   doctorScrollRow: {
-    gap: 10,
-    paddingVertical: 2,
+    gap: SIZE(10),
+    paddingVertical: SIZE(2),
   },
   doctorSelectCard: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
+    backgroundColor: colors.inputBg,
+    borderRadius: SIZE(12),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    padding: 10,
+    borderColor: '#EAECF0',
+    padding: SIZE(10),
     alignItems: 'center',
-    width: 120,
+    width: SIZE(120),
   },
   doctorSelectCardActive: {
     backgroundColor: colors.primaryLight,
     borderColor: colors.primary,
   },
   doctorSelectAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    marginBottom: 6,
+    width: SIZE(44),
+    height: SIZE(44),
+    borderRadius: SIZE(22),
+    marginBottom: SIZE(6),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#EAECF0',
   },
   doctorSelectName: {
-    fontSize: 12,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(12),
+    fontFamily: fonts.bold,
     color: colors.textPrimary,
     textAlign: 'center',
   },
@@ -2693,9 +2723,10 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   doctorSelectSpecialty: {
-    fontSize: 10,
+    fontSize: SIZE(10),
+    fontFamily: fonts.regular,
     color: colors.textSecondary,
-    marginTop: 2,
+    marginTop: SIZE(2),
     textAlign: 'center',
   },
   doctorSelectSpecialtyActive: {
@@ -2703,37 +2734,37 @@ const styles = StyleSheet.create({
   },
   // Date Selection in Modal
   dateScrollRow: {
-    gap: 8,
-    paddingVertical: 2,
+    gap: SIZE(8),
+    paddingVertical: SIZE(2),
   },
   dateSelectCard: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 10,
+    backgroundColor: colors.inputBg,
+    borderRadius: SIZE(10),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    borderColor: '#EAECF0',
+    paddingVertical: SIZE(10),
+    paddingHorizontal: SIZE(12),
     alignItems: 'center',
-    minWidth: 70,
+    minWidth: SIZE(70),
   },
   dateSelectCardActive: {
     backgroundColor: colors.primaryLight,
     borderColor: colors.primary,
   },
   dateSelectWeekday: {
-    fontSize: 11,
+    fontSize: SIZE(11),
+    fontFamily: fonts.medium,
     color: colors.textSecondary,
-    fontWeight: typography.fontWeightMedium,
   },
   dateSelectWeekdayActive: {
     color: colors.primary,
-    fontWeight: typography.fontWeightBold,
+    fontFamily: fonts.bold,
   },
   dateSelectDay: {
-    fontSize: 12,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(12),
+    fontFamily: fonts.bold,
     color: colors.textPrimary,
-    marginTop: 4,
+    marginTop: SIZE(4),
   },
   dateSelectDayActive: {
     color: colors.primary,
@@ -2742,39 +2773,41 @@ const styles = StyleSheet.create({
   loadingSchedulesBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    padding: 14,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 10,
+    gap: SIZE(8),
+    padding: SIZE(14),
+    backgroundColor: colors.inputBg,
+    borderRadius: SIZE(10),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#EAECF0',
   },
   loadingSchedulesText: {
-    fontSize: 12,
+    fontSize: SIZE(12),
+    fontFamily: fonts.regular,
     color: colors.textSecondary,
   },
   noSchedulesBox: {
-    padding: 14,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 10,
+    padding: SIZE(14),
+    backgroundColor: colors.inputBg,
+    borderRadius: SIZE(10),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#EAECF0',
   },
   noSchedulesText: {
-    fontSize: 12,
+    fontSize: SIZE(12),
+    fontFamily: fonts.regular,
     color: colors.textMuted,
-    lineHeight: 18,
+    lineHeight: SIZE(18),
   },
   schedulesGrid: {
-    gap: 8,
+    gap: SIZE(8),
   },
   scheduleCard: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 10,
+    backgroundColor: colors.inputBg,
+    borderRadius: SIZE(10),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    padding: 12,
-    gap: 6,
+    borderColor: '#EAECF0',
+    padding: SIZE(12),
+    gap: SIZE(6),
   },
   scheduleCardActive: {
     backgroundColor: colors.primaryLight,
@@ -2791,65 +2824,66 @@ const styles = StyleSheet.create({
   scheduleTimeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: SIZE(6),
   },
   scheduleTimeText: {
-    fontSize: 13,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(13),
+    fontFamily: fonts.bold,
     color: colors.textPrimary,
   },
   scheduleTimeTextActive: {
     color: colors.primary,
   },
   tokenPill: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: SIZE(8),
+    paddingVertical: SIZE(3),
     borderRadius: radius.full,
   },
   tokenPillText: {
-    fontSize: 10,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(10),
+    fontFamily: fonts.bold,
   },
   tokenPillSuccess: {
     backgroundColor: colors.successLight,
   },
   tokenPillTextSuccess: {
-    fontSize: 10,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(10),
+    fontFamily: fonts.bold,
     color: colors.success,
   },
   tokenPillWarning: {
     backgroundColor: colors.warningLight,
   },
   tokenPillTextWarning: {
-    fontSize: 10,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(10),
+    fontFamily: fonts.bold,
     color: '#D97706',
   },
   tokenPillFull: {
     backgroundColor: colors.dangerLight,
   },
   tokenPillTextFull: {
-    fontSize: 10,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(10),
+    fontFamily: fonts.bold,
     color: colors.danger,
   },
   scheduleSubText: {
-    fontSize: 11,
+    fontSize: SIZE(11),
+    fontFamily: fonts.regular,
     color: colors.textMuted,
   },
   // Bottom Sticky Bar
   modalStickyFooter: {
     backgroundColor: colors.white,
-    paddingHorizontal: spacing.base,
-    paddingVertical: 12,
+    paddingHorizontal: SIZE(16),
+    paddingVertical: SIZE(12),
     borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
+    borderTopColor: '#EAECF0',
   },
   bookSubmitBtn: {
     backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: 13,
+    borderRadius: SIZE(10),
+    paddingVertical: SIZE(13),
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -2858,91 +2892,92 @@ const styles = StyleSheet.create({
   },
   bookSubmitBtnText: {
     color: colors.white,
-    fontSize: 14,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(14),
+    fontFamily: fonts.bold,
   },
   // Confirmation Screen Styles
   confirmationScroll: {
-    padding: spacing.base,
-    paddingBottom: 40,
-    gap: 14,
+    padding: SIZE(16),
+    paddingBottom: SIZE(40),
+    gap: SIZE(14),
   },
   tokenHeroCard: {
     backgroundColor: colors.white,
-    borderRadius: 16,
+    borderRadius: SIZE(18),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    paddingVertical: 24,
-    paddingHorizontal: 16,
+    borderColor: '#EAECF0',
+    paddingVertical: SIZE(24),
+    paddingHorizontal: SIZE(16),
     alignItems: 'center',
-    gap: 8,
+    gap: SIZE(8),
   },
   tokenHeroLabel: {
-    fontSize: 11,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(11),
+    fontFamily: fonts.bold,
     color: colors.textMuted,
     letterSpacing: 1,
   },
   tokenHeroNumber: {
-    fontSize: 48,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(48),
+    fontFamily: fonts.bold,
     color: colors.primary,
     letterSpacing: -1,
   },
   tokenHeroBadge: {
     backgroundColor: colors.successLight,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: SIZE(10),
+    paddingVertical: SIZE(4),
     borderRadius: radius.full,
   },
   tokenHeroBadgeText: {
-    fontSize: 11,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(11),
+    fontFamily: fonts.bold,
     color: colors.success,
   },
   confirmSectionCard: {
     backgroundColor: colors.white,
-    borderRadius: 14,
+    borderRadius: SIZE(14),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    padding: 14,
-    gap: 10,
+    borderColor: '#EAECF0',
+    padding: SIZE(14),
+    gap: SIZE(10),
   },
   confirmSectionTitle: {
-    fontSize: 11,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(11),
+    fontFamily: fonts.bold,
     color: colors.textMuted,
     letterSpacing: 0.5,
   },
   confirmProfileRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: SIZE(12),
   },
   confirmProfileAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: SIZE(44),
+    height: SIZE(44),
+    borderRadius: SIZE(22),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#EAECF0',
   },
   confirmProfileName: {
-    fontSize: 15,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(15),
+    fontFamily: fonts.bold,
     color: colors.textPrimary,
   },
   confirmProfileMeta: {
-    fontSize: 12,
+    fontSize: SIZE(12),
+    fontFamily: fonts.regular,
     color: colors.textSecondary,
-    marginTop: 2,
+    marginTop: SIZE(2),
   },
   confirmDetailsBox: {
     backgroundColor: colors.white,
-    borderRadius: 14,
+    borderRadius: SIZE(14),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    padding: 14,
-    gap: 10,
+    borderColor: '#EAECF0',
+    padding: SIZE(14),
+    gap: SIZE(10),
   },
   confirmDetailRow: {
     flexDirection: 'row',
@@ -2950,50 +2985,50 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   confirmDetailLabel: {
-    fontSize: 12,
+    fontSize: SIZE(12),
+    fontFamily: fonts.medium,
     color: colors.textSecondary,
-    fontWeight: typography.fontWeightMedium,
   },
   confirmDetailValue: {
-    fontSize: 13,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(13),
+    fontFamily: fonts.bold,
     color: colors.textPrimary,
   },
   confirmDetailDivider: {
     height: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F1F4F9',
   },
   confirmActionsRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginTop: 8,
+    gap: SIZE(10),
+    marginTop: SIZE(8),
   },
   bookAnotherBtn: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 10,
+    backgroundColor: colors.inputBg,
+    borderRadius: SIZE(10),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    paddingVertical: 13,
+    borderColor: '#EAECF0',
+    paddingVertical: SIZE(13),
     alignItems: 'center',
     justifyContent: 'center',
   },
   bookAnotherBtnText: {
-    fontSize: 13,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(13),
+    fontFamily: fonts.bold,
     color: colors.textPrimary,
   },
   confirmDoneBtn: {
     flex: 1,
     backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: 13,
+    borderRadius: SIZE(10),
+    paddingVertical: SIZE(13),
     alignItems: 'center',
     justifyContent: 'center',
   },
   confirmDoneBtnText: {
-    fontSize: 13,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(13),
+    fontFamily: fonts.bold,
     color: colors.white,
   },
 });

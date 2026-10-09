@@ -10,7 +10,7 @@ import {
 } from 'react-native'
 import { useAppContext } from '../../context/AppContext'
 import { getSubscriptionStatus, updateClinic } from '../../services/api'
-import { colors, typography, spacing, radius } from '../../styles/theme'
+import { colors, typography, spacing, radius, fonts } from '../../styles/theme'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Button from '../../components/Button'
 
@@ -215,9 +215,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: spacing.md,
   },
-  clinicAvatarLetter: { fontSize: typography.fontSize2xl, fontWeight: typography.fontWeightBold, color: colors.primary },
+  clinicAvatarLetter: { fontSize: typography.fontSize2xl, fontFamily: fonts.bold, color: colors.primary },
   profileInfo: { flex: 1 },
-  clinicName: { fontSize: typography.fontSizeLg, fontWeight: typography.fontWeightBold, color: colors.textPrimary },
+  clinicName: { fontSize: typography.fontSizeLg, fontFamily: fonts.bold, color: colors.textPrimary },
   clinicType: { fontSize: typography.fontSizeXs, color: colors.textSecondary, marginTop: 2, textTransform: 'capitalize' },
   clinicContact: { fontSize: typography.fontSizeXs, color: colors.textSecondary, marginTop: 4 },
   section: {
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: typography.fontSizeSm,
-    fontWeight: typography.fontWeightSemibold,
+    fontFamily: fonts.semiBold,
     color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   infoLabel: { fontSize: typography.fontSizeSm, color: colors.textSecondary },
-  infoValue: { fontSize: typography.fontSizeSm, color: colors.textPrimary, fontWeight: typography.fontWeightMedium, maxWidth: '60%', textAlign: 'right' },
+  infoValue: { fontSize: typography.fontSizeSm, color: colors.textPrimary, fontFamily: fonts.medium, maxWidth: '60%', textAlign: 'right' },
   specialtyChips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   chip: {
     paddingVertical: spacing.xs,
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryLight,
     borderRadius: radius.full,
   },
-  chipText: { fontSize: typography.fontSizeXs, color: colors.primary, fontWeight: typography.fontWeightMedium },
+  chipText: { fontSize: typography.fontSizeXs, color: colors.primary, fontFamily: fonts.medium },
   subStatus: {
     fontSize: typography.fontSizeSm,
     color: colors.textSecondary,

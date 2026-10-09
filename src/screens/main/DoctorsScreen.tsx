@@ -1,144 +1,152 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
   Image,
   TextInput,
-  Alert,
-} from 'react-native'
-import { useNavigation } from '@react-navigation/native'
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import type { RootStackParamList } from '../../navigation/types'
-import { getDoctors, deleteDoctor } from '../../services/api'
-import type { AppointmentDoctor } from '../../services/types'
-import { useAppContext } from '../../context/AppContext'
-import { colors, typography, spacing, radius } from '../../styles/theme'
-import { SafeAreaView } from 'react-native-safe-area-context'
+  TouchableOpacity,
+} from 'react-native';
+import { getDoctors } from '../../services/api';
+import type { AppointmentDoctor } from '../../services/types';
+import { useAppContext } from '../../context/AppContext';
+import { colors, radius, fonts } from '../../styles/theme';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { SIZE } from '../../themes/sizes';
+import { SearchIcon, DoctorsIcon } from '../../assets/icons';
 
-type NavProp = NativeStackNavigationProp<RootStackParamList>
+const doctorProfileImg = require('../../assets/images/doctor-profile.png');
 
 const DoctorsScreen: React.FC = () => {
-  const navigation = useNavigation<NavProp>()
-  const { activeContext } = useAppContext()
-  const [doctors, setDoctors] = useState<AppointmentDoctor[]>([])
-  const [filtered, setFiltered] = useState<AppointmentDoctor[]>([])
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [search, setSearch] = useState('')
+  const { activeContext } = useAppContext();
+  const [doctors, setDoctors] = useState<AppointmentDoctor[]>([]);
+  const [filtered, setFiltered] = useState<AppointmentDoctor[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [search, setSearch] = useState('');
 
   const fetchDoctors = async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true)
-    else setLoading(true)
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
     try {
-      const res = await getDoctors(activeContext?.medicalCenter.id)
+      const res = await getDoctors(activeContext?.medicalCenter.id);
       if (res.success) {
-        setDoctors(res.data)
-        setFiltered(res.data)
+        setDoctors(res.data);
+        setFiltered(res.data);
       }
-    } catch {}
-    finally {
-      setLoading(false)
-      setRefreshing(false)
+    } catch {
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-  }
+  };
 
-  useEffect(() => { fetchDoctors() }, [])
+  useEffect(() => {
+    fetchDoctors();
+  }, []);
 
   useEffect(() => {
     if (!search.trim()) {
-      setFiltered(doctors)
-      return
+      setFiltered(doctors);
+      return;
     }
-    const q = search.toLowerCase()
+    const q = search.toLowerCase();
     setFiltered(
       doctors.filter(
         d =>
           d.name.toLowerCase().includes(q) ||
-          d.specialties.some(s => s.name.toLowerCase().includes(q))
-      )
-    )
-  }, [search, doctors])
-
-  const handleDelete = (doctor: AppointmentDoctor) => {
-    Alert.alert(
-      'Remove Doctor',
-      `Remove ${doctor.name} from this clinic?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteDoctor(doctor.id)
-              setDoctors(prev => prev.filter(d => d.id !== doctor.id))
-            } catch {
-              Alert.alert('Error', 'Failed to remove doctor.')
-            }
-          },
-        },
-      ]
-    )
-  }
+          d.specialties.some(s => s.name.toLowerCase().includes(q)),
+      ),
+    );
+  }, [search, doctors]);
 
   const renderItem = ({ item }: { item: AppointmentDoctor }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => navigation.navigate('DoctorProfile', { doctorId: item.id })}
-      activeOpacity={0.8}
-    >
+    <View style={styles.card}>
       <Image
-        source={item.profilePicture ? { uri: item.profilePicture } : require('../../assets/images/doctor-profile.png')}
+        source={
+          item.profilePicture ? { uri: item.profilePicture } : doctorProfileImg
+        }
         style={styles.avatar}
       />
+
       <View style={styles.info}>
-        <Text style={styles.doctorName}>{item.name}</Text>
-        <Text style={styles.specialty}>
-          {item.specialties.map(s => s.name).join(', ') || 'General'}
+        <Text style={styles.doctorName} numberOfLines={1}>
+          {item.name.startsWith('Dr.') ? item.name : `Dr. ${item.name}`}
         </Text>
-        <Text style={styles.meta}>
-          {item.yearsOfExperience} yrs exp  •  ₹{item.consultationFee}
+        <Text style={styles.specialty} numberOfLines={1}>
+          {item.specialties.map(s => s.name).join(', ') || 'General Medicine'}
         </Text>
+        <View style={styles.metaRow}>
+          <Text style={styles.metaText}>{item.yearsOfExperience} yrs exp</Text>
+          <View style={styles.metaDot} />
+          <Text style={styles.metaText}>₹{item.consultationFee}</Text>
+        </View>
       </View>
-      <TouchableOpacity
-        style={styles.scheduleBtn}
-        onPress={() =>
-          navigation.navigate('DoctorSchedule', {
-            doctorId: item.id,
-            doctorName: item.name,
-          })
-        }
-      >
-        <Text style={styles.scheduleBtnText}>Schedule</Text>
-      </TouchableOpacity>
-    </TouchableOpacity>
-  )
+    </View>
+  );
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.searchRow}>
-        <TextInput
-          style={styles.searchInput}
-          value={search}
-          onChangeText={setSearch}
-          placeholder="Search doctors..."
-          placeholderTextColor={colors.placeholder}
-        />
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Doctors</Text>
+        <View style={styles.countBadge}>
+          <Text style={styles.countBadgeText}>{doctors.length}</Text>
+        </View>
       </View>
 
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBox}>
+          <SearchIcon
+            width={SIZE(16)}
+            height={SIZE(16)}
+            stroke={colors.textMuted}
+          />
+          <TextInput
+            style={styles.searchInput}
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Search doctors or specialty..."
+            placeholderTextColor={colors.placeholder}
+            autoCorrect={false}
+          />
+          {search.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSearch('')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={styles.clearText}>✕</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {/* Content */}
       {loading ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading doctors...</Text>
         </View>
       ) : filtered.length === 0 ? (
         <View style={styles.centered}>
-          <Text style={styles.emptyText}>
-            {search ? 'No doctors match your search.' : 'No doctors found.'}
+          <View style={styles.emptyIconCircle}>
+            <DoctorsIcon
+              width={SIZE(28)}
+              height={SIZE(28)}
+              stroke={colors.textMuted}
+            />
+          </View>
+          <Text style={styles.emptyTitle}>
+            {search ? 'No doctors found' : 'No doctors yet'}
+          </Text>
+          <Text style={styles.emptySubtitle}>
+            {search
+              ? 'Try adjusting your search query.'
+              : 'Doctors assigned to this clinic will appear here.'}
           </Text>
         </View>
       ) : (
@@ -147,88 +155,172 @@ const DoctorsScreen: React.FC = () => {
           keyExtractor={item => item.id}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
               onRefresh={() => fetchDoctors(true)}
               tintColor={colors.primary}
+              colors={[colors.primary]}
             />
           }
         />
       )}
     </SafeAreaView>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.pageBg },
-  searchRow: {
+  safe: {
+    flex: 1,
+    backgroundColor: colors.pageBg,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.white,
-    paddingHorizontal: spacing.base,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: SIZE(22),
+    paddingTop: SIZE(12),
+    paddingBottom: SIZE(12),
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: '#EAECF0',
+    gap: SIZE(8),
+  },
+  headerTitle: {
+    fontSize: SIZE(22),
+    fontFamily: fonts.bold,
+    color: colors.textPrimary,
+    letterSpacing: -0.3,
+  },
+  countBadge: {
+    backgroundColor: '#F1F4F9',
+    paddingHorizontal: SIZE(8),
+    paddingVertical: SIZE(2),
+    borderRadius: radius.full,
+  },
+  countBadgeText: {
+    fontSize: SIZE(11),
+    fontFamily: fonts.bold,
+    color: colors.textSecondary,
+  },
+  searchContainer: {
+    backgroundColor: colors.white,
+    paddingHorizontal: SIZE(16),
+    paddingTop: SIZE(10),
+    paddingBottom: SIZE(10),
+    borderBottomWidth: 1,
+    borderBottomColor: '#EAECF0',
+  },
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.inputBg,
+    borderRadius: SIZE(10),
+    paddingHorizontal: SIZE(12),
+    height: SIZE(42),
+    borderWidth: 1,
+    borderColor: '#EAECF0',
+    gap: SIZE(8),
   },
   searchInput: {
-    backgroundColor: colors.inputBg,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.base,
-    paddingVertical: spacing.sm,
-    fontSize: typography.fontSizeSm,
+    flex: 1,
+    fontSize: SIZE(13),
+    fontFamily: fonts.regular,
     color: colors.textPrimary,
-    borderWidth: 1,
-    borderColor: colors.border,
+    paddingVertical: 0,
   },
-  list: { padding: spacing.base, gap: spacing.sm },
+  clearText: {
+    fontSize: SIZE(13),
+    fontFamily: fonts.bold,
+    color: colors.textMuted,
+    padding: SIZE(2),
+  },
+  list: {
+    padding: SIZE(16),
+    gap: SIZE(12),
+  },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.white,
-    borderRadius: radius.lg,
-    padding: spacing.base,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderRadius: SIZE(14),
+    borderWidth: 1,
+    borderColor: '#EAECF0',
+    padding: SIZE(14),
+    gap: SIZE(12),
   },
-  avatar: { width: 52, height: 52, borderRadius: radius.full, marginRight: spacing.md },
-  avatarFallback: {
-    width: 52,
-    height: 52,
-    borderRadius: radius.full,
-    backgroundColor: colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
+  avatar: {
+    width: SIZE(48),
+    height: SIZE(48),
+    borderRadius: SIZE(24),
+    borderWidth: 1,
+    borderColor: '#EAECF0',
+    backgroundColor: '#EDF4FE',
   },
-  avatarLetter: {
-    fontSize: typography.fontSizeLg,
-    fontWeight: typography.fontWeightBold,
-    color: colors.primary,
+  info: {
+    flex: 1,
+    gap: SIZE(6),
   },
-  info: { flex: 1 },
   doctorName: {
-    fontSize: typography.fontSizeBase,
-    fontWeight: typography.fontWeightSemibold,
+    fontSize: SIZE(14),
+    fontFamily: fonts.semiBold,
     color: colors.textPrimary,
   },
-  specialty: { fontSize: typography.fontSizeXs, color: colors.textSecondary, marginTop: 2 },
-  meta: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
-  scheduleBtn: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-    backgroundColor: colors.primaryLight,
-    borderRadius: radius.full,
-    marginLeft: spacing.sm,
+  specialty: {
+    fontSize: SIZE(12),
+    fontFamily: fonts.regular,
+    color: colors.textSecondary,
   },
-  scheduleBtnText: {
-    fontSize: typography.fontSizeXs,
-    color: colors.primary,
-    fontWeight: typography.fontWeightSemibold,
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SIZE(6),
   },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  emptyText: { fontSize: typography.fontSizeBase, color: colors.textMuted },
-})
+  metaText: {
+    fontSize: SIZE(11),
+    fontFamily: fonts.regular,
+    color: colors.textMuted,
+  },
+  metaDot: {
+    width: SIZE(3),
+    height: SIZE(3),
+    borderRadius: SIZE(2),
+    backgroundColor: colors.textMuted,
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: SIZE(24),
+  },
+  loadingText: {
+    fontSize: SIZE(13),
+    fontFamily: fonts.regular,
+    color: colors.textSecondary,
+    marginTop: SIZE(10),
+  },
+  emptyIconCircle: {
+    width: SIZE(60),
+    height: SIZE(60),
+    borderRadius: SIZE(30),
+    backgroundColor: '#EAECF0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SIZE(12),
+  },
+  emptyTitle: {
+    fontSize: SIZE(16),
+    fontFamily: fonts.bold,
+    color: colors.textPrimary,
+    marginBottom: SIZE(4),
+  },
+  emptySubtitle: {
+    fontSize: SIZE(13),
+    fontFamily: fonts.regular,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: SIZE(18),
+  },
+});
 
-export default DoctorsScreen
+export default DoctorsScreen;

@@ -19,3 +19,22 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+// async-storage 2.2.0 places next/ Kotlin files (which depend on Room) in the main source
+// set unconditionally, but only adds Room deps when AsyncStorage_useNextStorage=true.
+// AGP 9 builtInKotlin=true compiles all Kotlin files, so next/ fails without Room.
+// gradle.afterProject fires after subproject evaluation (com.facebook.react.rootproject
+// evaluates subprojects eagerly, making subprojects{afterEvaluate{}} too late).
+gradle.afterProject { proj ->
+    if (proj.name == 'react-native-async-storage_async-storage') {
+        def useNextStorage = proj.hasProperty('AsyncStorageConfig') &&
+            proj.ext.AsyncStorageConfig.useNextStorage
+        if (!useNextStorage) {
+            proj.tasks.configureEach { task ->
+                if (task instanceof org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
+                    task.exclude '**/asyncstorage/next/**'
+                }
+            }
+        }
+    }
+}

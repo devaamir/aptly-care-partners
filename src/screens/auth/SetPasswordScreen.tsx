@@ -13,7 +13,7 @@ import type { AuthStackParamList } from '../../navigation/types'
 import { setPassword as setPasswordApi } from '../../services/api'
 import InputField from '../../components/InputField'
 import Button from '../../components/Button'
-import { colors, typography, spacing, radius } from '../../styles/theme'
+import { colors, typography, spacing, radius, fonts } from '../../styles/theme'
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'SetPassword'>
 
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: typography.fontSize2xl,
-    fontWeight: typography.fontWeightBold,
+    fontFamily: fonts.bold,
     color: colors.textPrimary,
     marginBottom: spacing.xs,
   },

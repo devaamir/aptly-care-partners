@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
-import { colors, typography, spacing, radius } from '../styles/theme'
+import { colors, typography, spacing, radius, fonts } from '../styles/theme'
 
 type BadgeVariant = 'success' | 'danger' | 'warning' | 'info' | 'default'
 
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: typography.fontSizeXs,
-    fontWeight: typography.fontWeightSemibold,
+    fontFamily: fonts.semiBold,
     textTransform: 'capitalize',
   },
 })

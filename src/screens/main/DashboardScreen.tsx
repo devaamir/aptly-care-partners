@@ -1,4 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
+import Svg, {
+  Defs,
+  LinearGradient as SvgLinearGradient,
+  Stop,
+  Rect,
+} from 'react-native-svg';
 import {
   View,
   Text,
@@ -8,13 +14,13 @@ import {
   ActivityIndicator,
   RefreshControl,
   Image,
-} from 'react-native'
-import { useNavigation } from '@react-navigation/native'
-import type { NavigationProp } from '@react-navigation/native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAppContext } from '../../context/AppContext'
-import { getDashboard } from '../../services/api'
-import type { DashboardData } from '../../services/types'
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NavigationProp } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAppContext } from '../../context/AppContext';
+import { getDashboard } from '../../services/api';
+import type { DashboardData } from '../../services/types';
 import {
   NotificationIcon,
   ClockBlueIcon,
@@ -22,493 +28,566 @@ import {
   UpArrowGreenIcon,
   DownArrowRedIcon,
   RightArrowIcon,
-  QueueManagementIcon,
   AppointmentBlueIcon,
   PatientsBlueIcon,
   DoctorsIcon,
-  SettingsIcon,
-} from '../../assets/icons'
-import { colors, typography, spacing, radius } from '../../styles/theme'
+  AvatarIcon,
+  CalendarIcon,
+} from '../../assets/icons';
+import { colors, typography, spacing, radius, fonts } from '../../styles/theme';
+import { SIZE } from '../../themes/sizes';
 
-const doctorProfileImg = require('../../assets/images/doctor-profile.png')
-const userProfileImg = require('../../assets/images/user-profile.png')
+const doctorProfileImg = require('../../assets/images/doctor-profile.png');
+const logoImg = require('../../assets/images/logo.png');
 
-type DashboardNavProp = NavigationProp<any>
+type DashboardNavProp = NavigationProp<any>;
 
 const formatNum = (n: number) => {
-  if (!n && n !== 0) return '0'
-  return n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k` : `${n}`
-}
+  if (!n && n !== 0) return '0';
+  return n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k` : `${n}`;
+};
 
 const to12h = (t?: string) => {
-  if (!t) return '—'
-  const [h, m] = t.slice(0, 5).split(':').map(Number)
-  const ampm = h >= 12 ? 'PM' : 'AM'
-  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`
-}
+  if (!t) return '—';
+  const [h, m] = t.slice(0, 5).split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`;
+};
 
-const getDoctorStatus = (startTime?: string, stopTime?: string): { label: string; isLive: boolean } => {
-  if (!startTime || !stopTime) return { label: 'Scheduled', isLive: false }
-  const now = new Date()
-  const cur = now.getHours() * 60 + now.getMinutes()
-
-  const [sh, sm] = startTime.slice(0, 5).split(':').map(Number)
-  const [eh, em] = stopTime.slice(0, 5).split(':').map(Number)
-  const start = sh * 60 + sm
-  const end = eh * 60 + em
-
-  if (cur >= start && cur <= end) {
-    return { label: 'Live Now', isLive: true }
-  }
-  if (cur < start) {
-    return { label: 'Upcoming', isLive: false }
-  }
-  return { label: 'Completed', isLive: false }
-}
+const getDoctorStatus = (
+  startTime?: string,
+  stopTime?: string,
+): { label: string; isLive: boolean } => {
+  if (!startTime || !stopTime) return { label: 'Upcoming', isLive: false };
+  const now = new Date();
+  const cur = now.getHours() * 60 + now.getMinutes();
+  const [sh, sm] = startTime.slice(0, 5).split(':').map(Number);
+  const [eh, em] = stopTime.slice(0, 5).split(':').map(Number);
+  const start = sh * 60 + sm;
+  const end = eh * 60 + em;
+  if (cur >= start && cur <= end) return { label: 'Live Now', isLive: true };
+  if (cur < start) return { label: 'Upcoming', isLive: false };
+  return { label: 'Completed', isLive: false };
+};
 
 const DashboardScreen: React.FC = () => {
-  const navigation = useNavigation<DashboardNavProp>()
-  const { activeContext, activeDoctor } = useAppContext()
-  const [data, setData] = useState<DashboardData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [error, setError] = useState('')
+  const navigation = useNavigation<DashboardNavProp>();
+  const { activeContext, activeDoctor } = useAppContext();
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
 
-  const isDoctor = activeContext?.role === 'doctor'
+  const isDoctor = activeContext?.role === 'doctor';
 
   const fetchDashboard = async (isRefresh = false) => {
-    if (!activeContext?.medicalCenter.id) return
-    if (isRefresh) setRefreshing(true)
-    else setLoading(true)
-    setError('')
+    if (!activeContext?.medicalCenter.id) return;
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
+    setError('');
     try {
-      const res = await getDashboard(activeContext.medicalCenter.id)
-      if (res.success) setData(res.data)
+      const res = await getDashboard(activeContext.medicalCenter.id);
+      if (res.success) setData(res.data);
     } catch {
-      setError('Failed to load dashboard data.')
+      setError('Failed to load dashboard data.');
     } finally {
-      setLoading(false)
-      setRefreshing(false)
+      setLoading(false);
+      setRefreshing(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchDashboard()
-  }, [activeContext?.medicalCenter.id])
+    fetchDashboard();
+  }, [activeContext?.medicalCenter.id]);
 
   if (loading) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
-    )
+    );
   }
 
-  const clinicName = activeContext?.medicalCenter.name ?? 'Clinic'
-  const doctorName = activeDoctor?.name
-
+  const clinicName = activeContext?.medicalCenter.name ?? 'Clinic';
+  const doctorName = activeDoctor?.name;
   const avatarUri = isDoctor
-    ? (activeDoctor?.profilePicture || activeContext?.medicalCenter.profilePicture)
-    : activeContext?.medicalCenter.profilePicture
+    ? activeDoctor?.profilePicture ||
+      activeContext?.medicalCenter.profilePicture
+    : activeContext?.medicalCenter.profilePicture;
 
-  const avatarLetter = (
-    isDoctor && doctorName
-      ? doctorName.charAt(0)
-      : clinicName.charAt(0)
-  ).toUpperCase()
-
-  const confirmedToday = data?.todayAppointmentCounts.confirmedCount ?? 0
-  const cancelledToday = data?.todayAppointmentCounts.cancelledCount ?? 0
-  const totalToday = confirmedToday + cancelledToday
+  const confirmedToday = data?.todayAppointmentCounts.confirmedCount ?? 0;
+  const cancelledToday = data?.todayAppointmentCounts.cancelledCount ?? 0;
+  const totalToday = confirmedToday + cancelledToday;
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      {/* ─── Top Header (White bg, no container) ─── */}
-      <View style={styles.header}>
-        <Text style={styles.clinicName} numberOfLines={1}>
-          {clinicName}
-        </Text>
+    <View style={styles.screenRoot}>
+      {/* ─── Full-screen SVG gradient background ─── */}
+      <Svg style={StyleSheet.absoluteFill}>
+        <Defs>
+          <SvgLinearGradient id="screenGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="1" />
+            <Stop offset="100%" stopColor="#F5F5F6" stopOpacity="1" />
+          </SvgLinearGradient>
+        </Defs>
+        <Rect x="0" y="0" width="100%" height="100%" fill="url(#screenGrad)" />
+      </Svg>
 
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            style={styles.headerActionBtn}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel="Notifications"
-          >
-            <NotificationIcon width={18} height={18} fill={colors.textPrimary} color={colors.textPrimary} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.headerActionBtn}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel="Settings"
-            onPress={() => navigation.navigate('Settings')}
-          >
-            <SettingsIcon width={18} height={18} stroke={colors.textPrimary} color={colors.textPrimary} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.profileBtn}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel="Profile"
-            onPress={() => navigation.navigate('Settings')}
-          >
-            {avatarUri ? (
-              <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
-            ) : isDoctor ? (
-              <Image source={doctorProfileImg} style={styles.avatarImage} />
-            ) : (
-              <View style={styles.avatarFallback}>
-                <Text style={styles.avatarLetter}>{avatarLetter}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => fetchDashboard(true)}
-            tintColor={colors.primary}
-          />
-        }
-      >
-
-        {error ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{error}</Text>
+      <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+        {/* ─── Top Header ─── */}
+        <View style={styles.header}>
+          {/* Logo */}
+          <View style={styles.logoWrap}>
+            <Image
+              source={logoImg}
+              style={styles.logoImg}
+              resizeMode="contain"
+            />
           </View>
-        ) : null}
 
-        {/* ─── Today's Live Pulse Hero Card ─── */}
-        <View style={styles.heroCard}>
-          <View style={styles.heroTopRow}>
-            <View style={styles.heroLiveBadge}>
-              <View style={styles.pulsingDot} />
-              <Text style={styles.heroLiveText}>TODAY'S OPERATIONS</Text>
-            </View>
+          {/* Right actions */}
+          <View style={styles.headerActions}>
+            {/* Notification bell */}
             <TouchableOpacity
-              onPress={() => navigation.navigate('Queue')}
+              style={styles.iconCircle}
               activeOpacity={0.7}
-              style={styles.heroActionBtn}
+              accessibilityRole="button"
+              accessibilityLabel="Notifications"
             >
-              <Text style={styles.heroActionText}>Live Queue</Text>
-              <RightArrowIcon width={12} height={12} stroke={colors.white} color={colors.white} />
+              <NotificationIcon
+                width={SIZE(29)}
+                height={SIZE(28)}
+                color={colors.textPrimary}
+              />
+              <View style={styles.notifDot} />
             </TouchableOpacity>
-          </View>
 
-          <View style={styles.heroStatsRow}>
-            <View style={styles.heroStatItem}>
-              <Text style={styles.heroStatValue}>{confirmedToday}</Text>
-              <Text style={styles.heroStatLabel}>Confirmed</Text>
-            </View>
-            <View style={styles.heroDivider} />
-            <View style={styles.heroStatItem}>
-              <Text style={styles.heroStatValue}>{totalToday}</Text>
-              <Text style={styles.heroStatLabel}>Total Booked</Text>
-            </View>
-            <View style={styles.heroDivider} />
-            <View style={styles.heroStatItem}>
-              <Text style={[styles.heroStatValue, styles.heroStatCancelled]}>{cancelledToday}</Text>
-              <Text style={styles.heroStatLabel}>Cancelled</Text>
-            </View>
+            {/* Profile avatar */}
+            <TouchableOpacity
+              style={styles.iconCircle}
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate('Settings')}
+              accessibilityRole="button"
+              accessibilityLabel="Profile"
+            >
+              {avatarUri ? (
+                <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
+              ) : (
+                <AvatarIcon
+                  width={SIZE(18)}
+                  height={SIZE(18)}
+                  color={colors.textMuted}
+                />
+              )}
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* ─── Quick Shortcuts ─── */}
-        <View style={styles.shortcutsRow}>
-          <TouchableOpacity
-            style={styles.shortcutCard}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate('Queue')}
-          >
-            <View style={[styles.shortcutIconWrap, { backgroundColor: '#EAF3FF' }]}>
-              <QueueManagementIcon width={18} height={18} stroke={colors.primary} color={colors.primary} />
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => fetchDashboard(true)}
+              tintColor={colors.primary}
+            />
+          }
+        >
+          {error ? (
+            <View style={styles.errorBox}>
+              <Text style={styles.errorText}>{error}</Text>
             </View>
-            <Text style={styles.shortcutLabel}>Live Queue</Text>
-          </TouchableOpacity>
+          ) : null}
 
-          <TouchableOpacity
-            style={styles.shortcutCard}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate('Appointments')}
-          >
-            <View style={[styles.shortcutIconWrap, { backgroundColor: '#ECFDF5' }]}>
-              <AppointmentBlueIcon width={18} height={18} stroke="#059669" color="#059669" />
-            </View>
-            <Text style={styles.shortcutLabel}>Appointments</Text>
-          </TouchableOpacity>
+          {/* ─── Today's Operations Hero Card ─── */}
+          <View style={styles.heroCard}>
+            {/* SVG gradient background */}
+            <Svg style={StyleSheet.absoluteFill}>
+              <Defs>
+                <SvgLinearGradient
+                  id="heroGrad"
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="100%"
+                >
+                  <Stop offset="0%" stopColor="#C8DFF8" stopOpacity="1" />
+                  <Stop offset="50%" stopColor="#E4F0FC" stopOpacity="1" />
+                  <Stop offset="100%" stopColor="#D0E8FA" stopOpacity="1" />
+                </SvgLinearGradient>
+              </Defs>
+              <Rect
+                x="0"
+                y="0"
+                width="100%"
+                height="100%"
+                fill="url(#heroGrad)"
+                rx={SIZE(18)}
+              />
+            </Svg>
 
-          {!isDoctor && (
-            <TouchableOpacity
-              style={styles.shortcutCard}
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('Doctors')}
-            >
-              <View style={[styles.shortcutIconWrap, { backgroundColor: '#F3E8FF' }]}>
-                <DoctorsIcon width={18} height={18} stroke="#7C3AED" color="#7C3AED" />
+            <View style={styles.heroTopRow}>
+              <View style={styles.heroLiveBadge}>
+                <View style={styles.pulsingDot} />
+                <Text style={styles.heroLiveText}>TODAY'S OPERATIONS</Text>
               </View>
-              <Text style={styles.shortcutLabel}>Doctors</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Queue')}
+                activeOpacity={0.7}
+                style={styles.heroActionBtn}
+              >
+                <Text style={styles.heroActionText}>Live Queue</Text>
+                <RightArrowIcon
+                  width={SIZE(10)}
+                  height={SIZE(10)}
+                  stroke={colors.textPrimary}
+                  color={colors.textPrimary}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.heroStatsRow}>
+              <View style={styles.heroStatItem}>
+                <Text style={styles.heroStatValue}>{confirmedToday}</Text>
+                <Text style={styles.heroStatLabel}>Confirmed</Text>
+              </View>
+              <View style={styles.heroDivider} />
+              <View style={styles.heroStatItem}>
+                <Text style={styles.heroStatValue}>{totalToday}</Text>
+                <Text style={styles.heroStatLabel}>Total Booked</Text>
+              </View>
+              <View style={styles.heroDivider} />
+              <View style={styles.heroStatItem}>
+                <Text style={[styles.heroStatValue, styles.heroStatCancelled]}>
+                  {cancelledToday}
+                </Text>
+                <Text style={styles.heroStatLabel}>Cancelled</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* ─── Overview & Performance ─── */}
+          {data && (
+            <View style={styles.metricsSection}>
+              <View style={styles.sectionHeaderRow}>
+                <Text style={styles.sectionTitle}>Overview & Performance</Text>
+                <Text style={styles.sectionSubtext}>Current Month</Text>
+              </View>
+
+              <View style={styles.metricsGrid}>
+                {/* Monthly Visits */}
+                <View style={styles.metricCard}>
+                  <View style={styles.metricCardHeader}>
+                    <Text style={styles.metricCardLabel}>Monthly Visits</Text>
+                    <View
+                      style={[
+                        styles.metricIconWrap,
+                        { backgroundColor: '#E8F1FF' },
+                      ]}
+                    >
+                      <CalendarIcon
+                        width={SIZE(14)}
+                        height={SIZE(14)}
+                        stroke={colors.primary}
+                        color={colors.primary}
+                      />
+                    </View>
+                  </View>
+                  <Text style={styles.metricCardValue}>
+                    {formatNum(data.monthlyAppointments.currentCount)}
+                  </Text>
+                  <View style={styles.metricTrendRow}>
+                    <View
+                      style={[
+                        styles.trendBadge,
+                        data.monthlyAppointments.growthPercentage >= 0
+                          ? styles.trendNegative
+                          : styles.trendNegative,
+                      ]}
+                    >
+                      {data.monthlyAppointments.growthPercentage >= 0 ? (
+                        <DownArrowRedIcon
+                          width={SIZE(8)}
+                          height={SIZE(8)}
+                          style={{ marginRight: 2 }}
+                        />
+                      ) : (
+                        <DownArrowRedIcon
+                          width={SIZE(8)}
+                          height={SIZE(8)}
+                          style={{ marginRight: 2 }}
+                        />
+                      )}
+                      <Text
+                        style={[styles.trendText, styles.trendTextNegative]}
+                      >
+                        {Math.abs(
+                          data.monthlyAppointments.growthPercentage,
+                        ).toFixed(0)}
+                        %
+                      </Text>
+                    </View>
+                    <Text style={styles.metricSub}> vs last mo</Text>
+                  </View>
+                </View>
+
+                {/* Total Patients */}
+                <View style={styles.metricCard}>
+                  <View style={styles.metricCardHeader}>
+                    <Text style={styles.metricCardLabel}>Total Patients</Text>
+                    <View
+                      style={[
+                        styles.metricIconWrap,
+                        { backgroundColor: '#FFF3E0' },
+                      ]}
+                    >
+                      <PatientsBlueIcon
+                        width={SIZE(14)}
+                        height={SIZE(14)}
+                        stroke="#F59E0B"
+                        color="#F59E0B"
+                      />
+                    </View>
+                  </View>
+                  <Text style={styles.metricCardValue}>
+                    {formatNum(data.patients.currentCount)}
+                  </Text>
+                  <View style={styles.metricTrendRow}>
+                    <View
+                      style={[
+                        styles.trendBadge,
+                        data.patients.growthPercentage >= 0
+                          ? styles.trendPositive
+                          : styles.trendNegative,
+                      ]}
+                    >
+                      {data.patients.growthPercentage >= 0 ? (
+                        <UpArrowGreenIcon
+                          width={SIZE(8)}
+                          height={SIZE(8)}
+                          style={{ marginRight: 2 }}
+                        />
+                      ) : (
+                        <DownArrowRedIcon
+                          width={SIZE(8)}
+                          height={SIZE(8)}
+                          style={{ marginRight: 2 }}
+                        />
+                      )}
+                      <Text
+                        style={[
+                          styles.trendText,
+                          data.patients.growthPercentage >= 0
+                            ? styles.trendTextPositive
+                            : styles.trendTextNegative,
+                        ]}
+                      >
+                        {Math.abs(data.patients.growthPercentage).toFixed(0)}%
+                      </Text>
+                    </View>
+                    <Text style={styles.metricSub}> growth</Text>
+                  </View>
+                </View>
+
+                {/* Doctors on Duty */}
+                <View style={styles.metricCard}>
+                  <View style={styles.metricCardHeader}>
+                    <Text style={styles.metricCardLabel}>Doctors on Duty</Text>
+                    <View
+                      style={[
+                        styles.metricIconWrap,
+                        { backgroundColor: '#F0EEFF' },
+                      ]}
+                    >
+                      <DoctorsIcon
+                        width={SIZE(14)}
+                        height={SIZE(14)}
+                        stroke="#7C3AED"
+                        color="#7C3AED"
+                      />
+                    </View>
+                  </View>
+                  <Text style={styles.metricCardValue}>
+                    {data.todayDoctors.length}
+                  </Text>
+                  <View style={styles.metricTrendRow}>
+                    <Text style={styles.metricNote}>active today</Text>
+                  </View>
+                </View>
+
+                {/* Estimated Revenue */}
+                <View style={styles.metricCard}>
+                  <View style={styles.metricCardHeader}>
+                    <Text style={styles.metricCardLabel}>
+                      Estimated Revenue
+                    </Text>
+                    <View
+                      style={[
+                        styles.metricIconWrap,
+                        { backgroundColor: '#E6F9F0' },
+                      ]}
+                    >
+                      <GrowIcon width={SIZE(14)} height={SIZE(14)} />
+                    </View>
+                  </View>
+                  <Text style={styles.metricCardValue}>₹0</Text>
+                  <View style={styles.metricTrendRow}>
+                    <Text style={styles.metricNote}>this month</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
           )}
 
-          <TouchableOpacity
-            style={styles.shortcutCard}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate(isDoctor ? 'Appointments' : 'Patients')}
-          >
-            <View style={[styles.shortcutIconWrap, { backgroundColor: '#FFFBEB' }]}>
-              <PatientsBlueIcon width={18} height={18} stroke="#D97706" color="#D97706" />
-            </View>
-            <Text style={styles.shortcutLabel}>{isDoctor ? 'Schedule' : 'Patients'}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* ─── Analytics & Growth Metrics ─── */}
-        {data && (
-          <View style={styles.metricsSection}>
-            <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionTitle}>Overview & Performance</Text>
-              <Text style={styles.sectionSubtext}>Current Month</Text>
-            </View>
-
-            <View style={styles.metricsGrid}>
-              <View style={styles.metricCard}>
-                <View style={styles.metricCardHeader}>
-                  <Text style={styles.metricCardLabel}>Monthly Visits</Text>
-                  <View style={[styles.metricIconWrap, { backgroundColor: '#EAF3FF' }]}>
-                    <AppointmentBlueIcon width={15} height={15} stroke={colors.primary} color={colors.primary} />
-                  </View>
-                </View>
-                <Text style={styles.metricCardValue}>
-                  {formatNum(data.monthlyAppointments.currentCount)}
-                </Text>
-                <View style={styles.metricTrendRow}>
-                  <View
-                    style={[
-                      styles.trendBadge,
-                      data.monthlyAppointments.growthPercentage >= 0 ? styles.trendPositive : styles.trendNegative,
-                    ]}
-                  >
-                    {data.monthlyAppointments.growthPercentage >= 0 ? (
-                      <UpArrowGreenIcon width={10} height={10} style={{ marginRight: 2 }} />
-                    ) : (
-                      <DownArrowRedIcon width={10} height={10} style={{ marginRight: 2 }} />
-                    )}
-                    <Text
-                      style={[
-                        styles.trendText,
-                        data.monthlyAppointments.growthPercentage >= 0 ? styles.trendTextPositive : styles.trendTextNegative,
-                      ]}
-                    >
-                      {Math.abs(data.monthlyAppointments.growthPercentage).toFixed(0)}%
+          {/* ─── Doctors on Duty Today ─── */}
+          {data && (
+            <View style={styles.cardSection}>
+              <View style={styles.sectionHeaderRow}>
+                <View style={styles.titleWithBadge}>
+                  <Text style={styles.sectionTitle}>Doctors on Duty</Text>
+                  <View style={styles.countBadge}>
+                    <Text style={styles.countBadgeText}>
+                      {data.todayDoctors.length}
                     </Text>
                   </View>
-                  <Text style={styles.metricSub}>vs last mo</Text>
                 </View>
+                {!isDoctor && data.todayDoctors.length > 0 && (
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('Doctors')}
+                  >
+                    <Text style={styles.viewAllText}>View All</Text>
+                  </TouchableOpacity>
+                )}
               </View>
 
-              <View style={styles.metricCard}>
-                <View style={styles.metricCardHeader}>
-                  <Text style={styles.metricCardLabel}>Total Patients</Text>
-                  <View style={[styles.metricIconWrap, { backgroundColor: '#FEF3C7' }]}>
-                    <PatientsBlueIcon width={15} height={15} stroke="#D97706" color="#D97706" />
-                  </View>
+              {data.todayDoctors.length === 0 ? (
+                <View style={styles.emptyCard}>
+                  <Text style={styles.emptyTitle}>
+                    No doctors scheduled today
+                  </Text>
+                  <Text style={styles.emptySubtitle}>
+                    Schedules configured in management will appear here.
+                  </Text>
                 </View>
-                <Text style={styles.metricCardValue}>
-                  {formatNum(data.patients.currentCount)}
-                </Text>
-                <View style={styles.metricTrendRow}>
-                  <View
-                    style={[
-                      styles.trendBadge,
-                      data.patients.growthPercentage >= 0 ? styles.trendPositive : styles.trendNegative,
-                    ]}
-                  >
-                    {data.patients.growthPercentage >= 0 ? (
-                      <UpArrowGreenIcon width={10} height={10} style={{ marginRight: 2 }} />
-                    ) : (
-                      <DownArrowRedIcon width={10} height={10} style={{ marginRight: 2 }} />
-                    )}
-                    <Text
+              ) : (
+                data.todayDoctors.map((doc, idx) => {
+                  const schedule = doc.schedules[0];
+                  const status = getDoctorStatus(
+                    schedule?.startTime,
+                    schedule?.stopTime,
+                  );
+                  const specialtyName =
+                    doc.specialties[0]?.name || 'General Medicine';
+
+                  return (
+                    <View
+                      key={doc.id}
                       style={[
-                        styles.trendText,
-                        data.patients.growthPercentage >= 0 ? styles.trendTextPositive : styles.trendTextNegative,
+                        styles.doctorRow,
+                        idx === data.todayDoctors.length - 1 &&
+                          styles.doctorRowLast,
                       ]}
                     >
-                      {Math.abs(data.patients.growthPercentage).toFixed(0)}%
-                    </Text>
-                  </View>
-                  <Text style={styles.metricSub}>growth</Text>
-                </View>
-              </View>
-
-              <View style={styles.metricCard}>
-                <View style={styles.metricCardHeader}>
-                  <Text style={styles.metricCardLabel}>Doctors on Duty</Text>
-                  <View style={[styles.metricIconWrap, { backgroundColor: '#F3E8FF' }]}>
-                    <DoctorsIcon width={15} height={15} stroke="#7C3AED" color="#7C3AED" />
-                  </View>
-                </View>
-                <Text style={styles.metricCardValue}>
-                  {data.todayDoctors.length}
-                </Text>
-                <View style={styles.metricTrendRow}>
-                  <Text style={styles.metricNote}>active today</Text>
-                </View>
-              </View>
-
-              <View style={styles.metricCard}>
-                <View style={styles.metricCardHeader}>
-                  <Text style={styles.metricCardLabel}>Estimated Revenue</Text>
-                  <View style={[styles.metricIconWrap, { backgroundColor: '#DCFCE7' }]}>
-                    <GrowIcon width={15} height={15} />
-                  </View>
-                </View>
-                <Text style={styles.metricCardValue}>₹0</Text>
-                <View style={styles.metricTrendRow}>
-                  <Text style={styles.metricNote}>this month</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* ─── Doctors on Duty Today ─── */}
-        {data && (
-          <View style={styles.cardSection}>
-            <View style={styles.sectionHeaderRow}>
-              <View style={styles.titleWithBadge}>
-                <Text style={styles.sectionTitle}>Doctors on Duty</Text>
-                <View style={styles.countBadge}>
-                  <Text style={styles.countBadgeText}>{data.todayDoctors.length}</Text>
-                </View>
-              </View>
-              {!isDoctor && data.todayDoctors.length > 0 && (
-                <TouchableOpacity onPress={() => navigation.navigate('Doctors')}>
-                  <Text style={styles.seeAllText}>View All</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {data.todayDoctors.length === 0 ? (
-              <View style={styles.emptyCard}>
-                <Text style={styles.emptyTitle}>No doctors scheduled today</Text>
-                <Text style={styles.emptySubtitle}>Schedules configured in management will appear here.</Text>
-              </View>
-            ) : (
-              data.todayDoctors.map((doc, idx) => {
-                const schedule = doc.schedules[0]
-                const status = getDoctorStatus(schedule?.startTime, schedule?.stopTime)
-                const specialtyName = doc.specialties[0]?.name || 'General Practitioner'
-
-                return (
-                  <View
-                    key={doc.id}
-                    style={[
-                      styles.doctorCard,
-                      idx === data.todayDoctors.length - 1 && styles.doctorCardLast,
-                    ]}
-                  >
-                    <View style={styles.doctorAvatarContainer}>
+                      {/* Avatar */}
                       <Image
-                        source={doc.profilePicture ? { uri: doc.profilePicture } : doctorProfileImg}
+                        source={
+                          doc.profilePicture
+                            ? { uri: doc.profilePicture }
+                            : doctorProfileImg
+                        }
                         style={styles.doctorAvatarImg}
                       />
+
+                      {/* Info */}
+                      <View style={styles.doctorInfoCol}>
+                        <Text style={styles.doctorNameText} numberOfLines={1}>
+                          {doc.name.startsWith('Dr.')
+                            ? doc.name
+                            : `Dr. ${doc.name}`}
+                        </Text>
+                        <Text
+                          style={styles.doctorSpecialtyText}
+                          numberOfLines={1}
+                        >
+                          {specialtyName}
+                        </Text>
+                        {schedule && (
+                          <View style={styles.doctorTimeRow}>
+                            <ClockBlueIcon
+                              width={SIZE(11)}
+                              height={SIZE(11)}
+                              stroke={colors.textMuted}
+                              color={colors.textMuted}
+                            />
+                            <Text style={styles.doctorTimeText}>
+                              {to12h(schedule.startTime)} –{' '}
+                              {to12h(schedule.stopTime)}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+
+                      {/* Status pill */}
                       <View
                         style={[
-                          styles.doctorStatusIndicator,
-                          status.isLive ? styles.indicatorLive : styles.indicatorIdle,
-                        ]}
-                      />
-                    </View>
-
-                    <View style={styles.doctorInfoCol}>
-                      <Text style={styles.doctorNameText} numberOfLines={1}>
-                        {doc.name.startsWith('Dr.') ? doc.name : `Dr. ${doc.name}`}
-                      </Text>
-                      <Text style={styles.doctorSpecialtyText} numberOfLines={1}>
-                        {specialtyName}
-                      </Text>
-                      {schedule && (
-                        <View style={styles.doctorTimeRow}>
-                          <ClockBlueIcon width={12} height={12} stroke={colors.textMuted} color={colors.textMuted} />
-                          <Text style={styles.doctorTimeText}>
-                            {to12h(schedule.startTime)} – {to12h(schedule.stopTime)}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-
-                    <View style={styles.doctorStatusCol}>
-                      <View
-                        style={[
-                          styles.doctorStatusPill,
-                          status.isLive ? styles.pillLive : styles.pillScheduled,
+                          styles.statusPill,
+                          status.isLive ? styles.pillLive : styles.pillUpcoming,
                         ]}
                       >
                         <Text
                           style={[
-                            styles.doctorStatusPillText,
-                            status.isLive ? styles.pillTextLive : styles.pillTextScheduled,
+                            styles.statusPillText,
+                            status.isLive
+                              ? styles.pillTextLive
+                              : styles.pillTextUpcoming,
                           ]}
                         >
                           {status.label}
                         </Text>
                       </View>
                     </View>
-                  </View>
-                )
-              })
-            )}
-          </View>
-        )}
-
-        {/* ─── Today's Appointments List ─── */}
-        {data && (
-          <View style={styles.cardSection}>
-            <View style={styles.sectionHeaderRow}>
-              <View style={styles.titleWithBadge}>
-                <Text style={styles.sectionTitle}>Today's Appointments</Text>
-                <View style={styles.countBadge}>
-                  <Text style={styles.countBadgeText}>{data.todayAppointments.length}</Text>
-                </View>
-              </View>
-              {data.todayAppointments.length > 0 && (
-                <TouchableOpacity onPress={() => navigation.navigate('Appointments')}>
-                  <Text style={styles.seeAllText}>See All</Text>
-                </TouchableOpacity>
+                  );
+                })
               )}
             </View>
+          )}
 
-            {data.todayAppointments.length === 0 ? (
-              <View style={styles.emptyCard}>
-                <Text style={styles.emptyTitle}>No appointments booked for today</Text>
-                <Text style={styles.emptySubtitle}>New bookings will reflect here in real-time.</Text>
+          {/* ─── Today's Appointments ─── */}
+          {data && data.todayAppointments.length > 0 && (
+            <View style={styles.cardSection}>
+              <View style={styles.sectionHeaderRow}>
+                <View style={styles.titleWithBadge}>
+                  <Text style={styles.sectionTitle}>Today's Appointments</Text>
+                  <View style={styles.countBadge}>
+                    <Text style={styles.countBadgeText}>
+                      {data.todayAppointments.length}
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Appointments')}
+                >
+                  <Text style={styles.viewAllText}>See All</Text>
+                </TouchableOpacity>
               </View>
-            ) : (
-              data.todayAppointments.slice(0, 5).map((appt, idx) => (
+
+              {data.todayAppointments.slice(0, 5).map((appt, idx) => (
                 <TouchableOpacity
                   key={appt.id}
                   style={[
-                    styles.apptRowItem,
-                    idx === Math.min(data.todayAppointments.length, 5) - 1 && styles.apptRowLast,
+                    styles.apptRow,
+                    idx === Math.min(data.todayAppointments.length, 5) - 1 &&
+                      styles.apptRowLast,
                   ]}
                   activeOpacity={0.7}
                   onPress={() => navigation.navigate('Appointments')}
                 >
-                  <View style={styles.patientAvatarContainer}>
-                    <Image source={userProfileImg} style={styles.patientAvatarImg} />
+                  <View style={styles.apptAvatarPlaceholder}>
+                    <Text style={styles.apptAvatarLetter}>
+                      {appt.patient.name.charAt(0).toUpperCase()}
+                    </Text>
                   </View>
-
                   <View style={styles.apptDetailsCol}>
                     <Text style={styles.apptPatientName} numberOfLines={1}>
                       {appt.patient.name}
@@ -517,156 +596,149 @@ const DashboardScreen: React.FC = () => {
                       Dr. {appt.doctor.name}
                     </Text>
                   </View>
-
                   <View style={styles.apptRightCol}>
                     <View style={styles.apptStatusTag}>
                       <Text style={styles.apptStatusText}>Confirmed</Text>
                     </View>
-                    <RightArrowIcon width={14} height={14} stroke={colors.textMuted} color={colors.textMuted} />
+                    <RightArrowIcon
+                      width={SIZE(12)}
+                      height={SIZE(12)}
+                      stroke={colors.textMuted}
+                      color={colors.textMuted}
+                    />
                   </View>
                 </TouchableOpacity>
-              ))
-            )}
-          </View>
-        )}
-      </ScrollView>
-    </SafeAreaView>
-  )
-}
+              ))}
+            </View>
+          )}
+        </ScrollView>
+      </SafeAreaView>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
+  screenRoot: {
+    flex: 1,
+  },
   safe: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: 'transparent',
   },
   scroll: {
     flex: 1,
-    backgroundColor: '#F7F8FC',
+    backgroundColor: 'transparent',
   },
   content: {
-    paddingHorizontal: spacing.base,
-    paddingTop: spacing.base,
-    paddingBottom: spacing['4xl'],
+    paddingHorizontal: SIZE(22),
+    paddingTop: SIZE(16),
+    paddingBottom: SIZE(48),
   },
   centered: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F7F8FC',
+    backgroundColor: colors.pageBg,
   },
 
-  /* ─── Top Header (White bg, no container) ─── */
+  /* ─── Header ─── */
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.white,
-    paddingHorizontal: spacing.base,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F2F5',
+    backgroundColor: 'transparent',
+    paddingHorizontal: SIZE(22),
+    paddingVertical: SIZE(12),
   },
-  clinicName: {
-    fontSize: typography.fontSizeXl,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    letterSpacing: -0.3,
+  logoWrap: {
     flex: 1,
-    marginRight: spacing.sm,
+  },
+  logoImg: {
+    width: SIZE(138.72),
+    height: SIZE(34),
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: SIZE(9),
   },
-  headerActionBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F8F9FB',
+  iconCircle: {
+    width: SIZE(29),
+    height: SIZE(28),
+    // borderRadius: SIZE(14),
+    backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  profileBtn: {
-    marginLeft: 2,
+  notifDot: {
+    position: 'absolute',
+    top: SIZE(0),
+    right: SIZE(0),
+    width: SIZE(17),
+    height: SIZE(17),
+    borderRadius: SIZE(9),
+    backgroundColor: colors.danger,
+    borderWidth: 1.5,
+    borderColor: colors.white,
   },
   avatarImage: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-  },
-  avatarFallback: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-  },
-  avatarLetter: {
-    fontSize: typography.fontSizeBase,
-    fontWeight: '700',
-    color: colors.primary,
+    width: SIZE(28),
+    height: SIZE(28),
+    borderRadius: SIZE(14),
   },
 
-  /* ─── Hero Card ─── */
+  /* ─── Hero Card (LinearGradient) ─── */
   heroCard: {
-    backgroundColor: '#1E293B',
-    borderRadius: 20,
-    padding: spacing.base,
-    marginBottom: spacing.base,
-    borderWidth: 1,
-    borderColor: '#334155',
+    borderRadius: SIZE(18),
+    padding: SIZE(14),
+    marginBottom: SIZE(16),
+    overflow: 'hidden',
   },
   heroTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing.md,
+    marginBottom: SIZE(12),
   },
   heroLiveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   pulsingDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: SIZE(8),
+    height: SIZE(8),
+    borderRadius: SIZE(4),
     backgroundColor: '#34D399',
-    marginRight: 6,
+    marginRight: SIZE(6),
   },
   heroLiveText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#94A3B8',
-    letterSpacing: 0.6,
+    fontSize: SIZE(10),
+    fontFamily: fonts.bold,
+    color: '#4A5568',
+    letterSpacing: 0.5,
   },
   heroActionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    backgroundColor: '#1E293B',
+    paddingHorizontal: SIZE(12),
+    paddingVertical: SIZE(6),
     borderRadius: radius.full,
+    gap: SIZE(4),
   },
   heroActionText: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: SIZE(11),
+    fontFamily: fonts.semiBold,
     color: colors.white,
-    marginRight: 4,
   },
   heroStatsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderRadius: 14,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.sm,
+    backgroundColor: '#1E293B',
+    borderRadius: SIZE(14),
+    paddingVertical: SIZE(14),
+    paddingHorizontal: SIZE(8),
   },
   heroStatItem: {
     flex: 1,
@@ -674,12 +746,12 @@ const styles = StyleSheet.create({
   },
   heroDivider: {
     width: 1,
-    height: 28,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    height: SIZE(28),
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
   },
   heroStatValue: {
-    fontSize: typography.fontSize2xl,
-    fontWeight: '700',
+    fontSize: SIZE(24),
+    fontFamily: fonts.bold,
     color: colors.white,
     letterSpacing: -0.5,
   },
@@ -687,84 +759,72 @@ const styles = StyleSheet.create({
     color: '#F87171',
   },
   heroStatLabel: {
-    fontSize: 11,
-    fontWeight: '500',
+    fontSize: SIZE(10),
+    fontFamily: fonts.medium,
     color: '#94A3B8',
-    marginTop: 2,
+    marginTop: SIZE(2),
   },
 
-  /* ─── Quick Shortcuts ─── */
-  shortcutsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 8,
-    marginBottom: spacing.base,
-  },
-  shortcutCard: {
-    flex: 1,
-    backgroundColor: colors.white,
-    borderRadius: 16,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  shortcutIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 6,
-  },
-  shortcutLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.textPrimary,
-  },
-
-  /* ─── Metrics Grid ─── */
+  /* ─── Metrics ─── */
   metricsSection: {
-    marginBottom: spacing.base,
+    marginBottom: SIZE(16),
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: SIZE(12),
+  },
+  sectionTitle: {
+    fontSize: SIZE(16),
+    fontFamily: fonts.bold,
+    color: colors.textPrimary,
+    letterSpacing: -0.2,
+  },
+  sectionSubtext: {
+    fontSize: SIZE(11),
+    fontFamily: fonts.medium,
+    color: colors.textMuted,
   },
   metricsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: SIZE(10),
   },
   metricCard: {
-    width: '48.5%',
+    width: '48.2%',
     backgroundColor: colors.white,
-    borderRadius: 16,
-    padding: spacing.md,
+    borderRadius: SIZE(14),
+    padding: SIZE(14),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#EAECF0',
   },
   metricCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: SIZE(8),
   },
   metricCardLabel: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: SIZE(11),
+    fontFamily: fonts.semiBold,
     color: colors.textSecondary,
     flex: 1,
+    paddingRight: SIZE(4),
   },
   metricIconWrap: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: SIZE(30),
+    height: SIZE(30),
+    borderRadius: SIZE(15),
     alignItems: 'center',
     justifyContent: 'center',
   },
   metricCardValue: {
-    fontSize: typography.fontSize2xl,
-    fontWeight: '700',
+    fontSize: SIZE(24),
+    fontFamily: fonts.bold,
     color: colors.textPrimary,
     letterSpacing: -0.5,
-    marginBottom: 6,
+    marginBottom: SIZE(6),
   },
   metricTrendRow: {
     flexDirection: 'row',
@@ -773,10 +833,9 @@ const styles = StyleSheet.create({
   trendBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginRight: 4,
+    paddingHorizontal: SIZE(5),
+    paddingVertical: SIZE(2),
+    borderRadius: SIZE(4),
   },
   trendPositive: {
     backgroundColor: '#DCFCE7',
@@ -785,8 +844,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEE2E2',
   },
   trendText: {
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: SIZE(10),
+    fontFamily: fonts.bold,
   },
   trendTextPositive: {
     color: '#15803D',
@@ -795,226 +854,186 @@ const styles = StyleSheet.create({
     color: '#B91C1C',
   },
   metricSub: {
-    fontSize: 10,
+    fontSize: SIZE(10),
+    fontFamily: fonts.regular,
     color: colors.textMuted,
   },
   metricNote: {
-    fontSize: 11,
+    fontSize: SIZE(11),
+    fontFamily: fonts.regular,
     color: colors.textMuted,
   },
 
-  /* ─── Card Section (Doctors & Appointments) ─── */
+  /* ─── Card Section ─── */
   cardSection: {
     backgroundColor: colors.white,
-    borderRadius: 20,
-    padding: spacing.base,
-    marginBottom: spacing.base,
+    borderRadius: SIZE(18),
+    padding: SIZE(16),
+    marginBottom: SIZE(16),
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.md,
+    borderColor: '#EAECF0',
   },
   titleWithBadge: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  sectionTitle: {
-    fontSize: typography.fontSizeMd,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    letterSpacing: -0.2,
-  },
-  sectionSubtext: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: colors.textMuted,
-  },
   countBadge: {
     backgroundColor: '#F1F4F9',
-    paddingHorizontal: 7,
-    paddingVertical: 2,
+    paddingHorizontal: SIZE(8),
+    paddingVertical: SIZE(2),
     borderRadius: radius.full,
-    marginLeft: 8,
+    marginLeft: SIZE(8),
   },
   countBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: SIZE(11),
+    fontFamily: fonts.bold,
     color: colors.textSecondary,
   },
-  seeAllText: {
-    fontSize: 12,
-    fontWeight: '600',
+  viewAllText: {
+    fontSize: SIZE(12),
+    fontFamily: fonts.semiBold,
     color: colors.primary,
   },
 
   /* ─── Doctor Row ─── */
-  doctorCard: {
+  doctorRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: SIZE(12),
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
   },
-  doctorCardLast: {
+  doctorRowLast: {
     borderBottomWidth: 0,
-    paddingBottom: 2,
-  },
-  doctorAvatarContainer: {
-    position: 'relative',
-    marginRight: 10,
+    paddingBottom: 0,
   },
   doctorAvatarImg: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-  },
-  doctorAvatarFallback: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: SIZE(44),
+    height: SIZE(44),
+    borderRadius: SIZE(22),
+    marginRight: SIZE(10),
     backgroundColor: '#EDF4FE',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  doctorAvatarLetter: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  doctorStatusIndicator: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    borderWidth: 1.5,
-    borderColor: colors.white,
-  },
-  indicatorLive: {
-    backgroundColor: '#22C55E',
-  },
-  indicatorIdle: {
-    backgroundColor: '#94A3B8',
   },
   doctorInfoCol: {
     flex: 1,
-    paddingRight: 8,
+    paddingRight: SIZE(8),
+    gap: SIZE(2),
   },
   doctorNameText: {
-    fontSize: typography.fontSizeSm,
-    fontWeight: '600',
+    fontSize: SIZE(13),
+    fontFamily: fonts.semiBold,
     color: colors.textPrimary,
   },
   doctorSpecialtyText: {
-    fontSize: 11,
+    fontSize: SIZE(11),
+    fontFamily: fonts.regular,
     color: colors.textSecondary,
-    marginTop: 1,
   },
   doctorTimeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 3,
+    gap: SIZE(4),
+    marginTop: SIZE(2),
   },
   doctorTimeText: {
-    fontSize: 11,
+    fontSize: SIZE(11),
+    fontFamily: fonts.regular,
     color: colors.textMuted,
-    marginLeft: 4,
   },
-  doctorStatusCol: {
-    alignItems: 'flex-end',
-  },
-  doctorStatusPill: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+  statusPill: {
+    paddingHorizontal: SIZE(10),
+    paddingVertical: SIZE(4),
     borderRadius: radius.full,
   },
   pillLive: {
     backgroundColor: '#DCFCE7',
   },
-  pillScheduled: {
+  pillUpcoming: {
     backgroundColor: '#F1F4F9',
   },
-  doctorStatusPillText: {
-    fontSize: 10,
-    fontWeight: '700',
+  statusPillText: {
+    fontSize: SIZE(11),
+    fontFamily: fonts.semiBold,
   },
   pillTextLive: {
     color: '#15803D',
   },
-  pillTextScheduled: {
+  pillTextUpcoming: {
     color: colors.textMuted,
   },
 
-  /* ─── Appointments Row ─── */
-  apptRowItem: {
+  /* ─── Appointment Row ─── */
+  apptRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: SIZE(10),
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
   },
   apptRowLast: {
     borderBottomWidth: 0,
-    paddingBottom: 2,
   },
-  patientAvatarContainer: {
-    marginRight: 10,
+  apptAvatarPlaceholder: {
+    width: SIZE(36),
+    height: SIZE(36),
+    borderRadius: SIZE(18),
+    backgroundColor: colors.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: SIZE(10),
   },
-  patientAvatarImg: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  apptAvatarLetter: {
+    fontSize: SIZE(14),
+    fontFamily: fonts.bold,
+    color: colors.primary,
   },
   apptDetailsCol: {
     flex: 1,
-    paddingRight: 8,
+    paddingRight: SIZE(8),
   },
   apptPatientName: {
-    fontSize: typography.fontSizeSm,
-    fontWeight: '600',
+    fontSize: SIZE(13),
+    fontFamily: fonts.semiBold,
     color: colors.textPrimary,
   },
   apptDoctorName: {
-    fontSize: 11,
+    fontSize: SIZE(11),
+    fontFamily: fonts.regular,
     color: colors.textSecondary,
-    marginTop: 2,
+    marginTop: SIZE(2),
   },
   apptRightCol: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: SIZE(6),
   },
   apptStatusTag: {
     backgroundColor: '#DCFCE7',
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 6,
+    paddingHorizontal: SIZE(8),
+    paddingVertical: SIZE(3),
+    borderRadius: SIZE(6),
   },
   apptStatusText: {
-    fontSize: 10,
-    fontWeight: '600',
+    fontSize: SIZE(10),
+    fontFamily: fonts.semiBold,
     color: '#15803D',
   },
 
-  /* ─── Empty Card ─── */
+  /* ─── Empty State ─── */
   emptyCard: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacing.lg,
+    paddingVertical: SIZE(24),
   },
   emptyTitle: {
-    fontSize: typography.fontSizeSm,
-    fontWeight: '600',
+    fontSize: SIZE(13),
+    fontFamily: fonts.semiBold,
     color: colors.textSecondary,
-    marginBottom: 4,
+    marginBottom: SIZE(4),
   },
   emptySubtitle: {
-    fontSize: 11,
+    fontSize: SIZE(11),
+    fontFamily: fonts.regular,
     color: colors.textMuted,
     textAlign: 'center',
   },
@@ -1023,13 +1042,14 @@ const styles = StyleSheet.create({
   errorBox: {
     backgroundColor: colors.dangerLight,
     borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.base,
+    padding: SIZE(12),
+    marginBottom: SIZE(16),
   },
   errorText: {
     color: colors.danger,
-    fontSize: typography.fontSizeSm,
+    fontSize: SIZE(13),
+    fontFamily: fonts.regular,
   },
-})
+});
 
-export default DashboardScreen
+export default DashboardScreen;

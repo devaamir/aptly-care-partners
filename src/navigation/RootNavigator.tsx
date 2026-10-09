@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import type { SvgProps } from 'react-native-svg'
 
 import { useAppContext } from '../context/AppContext'
-import { colors, typography } from '../styles/theme'
+import { colors, typography , fonts } from '../styles/theme'
 
 import DashboardIcon from '../assets/icons/dashboard-icon.svg'
 import AppointmentIcon from '../assets/icons/appointment-icon.svg'
@@ -67,7 +67,7 @@ function useTabScreenOptions(): BottomTabNavigationOptions {
   const tabHeight = 62 + bottomPadding
 
   return {
-    tabBarActiveTintColor: colors.primary,
+    tabBarActiveTintColor: '#2879E4',
     tabBarInactiveTintColor: colors.textMuted,
     tabBarStyle: {
       backgroundColor: colors.white,
@@ -84,7 +84,7 @@ function useTabScreenOptions(): BottomTabNavigationOptions {
     },
     tabBarLabelStyle: {
       fontSize: typography.fontSizeXs,
-      fontWeight: '500',
+      fontFamily: fonts.medium,
       marginTop: 2,
     },
     tabBarItemStyle: {
@@ -139,9 +139,8 @@ function ManagerTabs() {
         name="Patients"
         component={PatientsScreen}
         options={{
-          tabBarIcon: ({ focused, color }) => (
-            <TabIcon Icon={PatientsIcon} focused={focused} color={color} />
-          ),
+          tabBarButton: () => null,
+          tabBarItemStyle: { display: 'none' },
         }}
       />
     </MainTab.Navigator>

@@ -8,7 +8,8 @@ import {
   type KeyboardTypeOptions,
   type ViewStyle,
 } from 'react-native'
-import { colors, typography, spacing, radius } from '../styles/theme'
+import { colors, typography, spacing, radius, fonts } from '../styles/theme'
+import { SIZE } from '../themes/sizes'
 import SecurityEyeIcon from '../assets/icons/security-eye.svg'
 
 interface InputFieldProps {
@@ -26,6 +27,7 @@ interface InputFieldProps {
   error?: string
   style?: ViewStyle
   rightElement?: React.ReactNode
+  leftIcon?: React.ReactNode
 }
 
 const InputField: React.FC<InputFieldProps> = ({
@@ -43,6 +45,7 @@ const InputField: React.FC<InputFieldProps> = ({
   error,
   style,
   rightElement,
+  leftIcon,
 }) => {
   const [showPassword, setShowPassword] = useState(false)
   const isPassword = secureTextEntry
@@ -51,6 +54,7 @@ const InputField: React.FC<InputFieldProps> = ({
     <View style={[styles.container, style]}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
       <View style={[styles.inputWrapper, error ? styles.inputError : null]}>
+        {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
         <TextInput
           style={[
             styles.input,
@@ -78,7 +82,6 @@ const InputField: React.FC<InputFieldProps> = ({
             <SecurityEyeIcon
               width={20}
               height={20}
-              fill={showPassword ? colors.primary : colors.textMuted}
             />
           </TouchableOpacity>
         )}
@@ -97,7 +100,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: typography.fontSizeSm,
-    fontWeight: typography.fontWeightMedium,
+    fontFamily: fonts.medium,
     color: colors.textSecondary,
     marginBottom: spacing.xs,
   },
@@ -112,7 +115,8 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: typography.fontSizeBase,
+    fontSize: SIZE(14),
+    fontFamily: fonts.regular,
     color: colors.textPrimary,
     paddingVertical: spacing.md,
     minHeight: 46,
@@ -133,6 +137,9 @@ const styles = StyleSheet.create({
   },
   rightElement: {
     paddingLeft: spacing.sm,
+  },
+  leftIcon: {
+    paddingRight: spacing.sm,
   },
   errorText: {
     fontSize: typography.fontSizeXs,

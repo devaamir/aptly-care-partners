@@ -16,7 +16,7 @@ import {
 } from 'react-native'
 import { getPatients, createPatient, searchPatients } from '../../services/api'
 import type { Patient } from '../../services/types'
-import { colors, typography, spacing, radius } from '../../styles/theme'
+import { colors, typography, spacing, radius, fonts } from '../../styles/theme'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Button from '../../components/Button'
 import InputField from '../../components/InputField'
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: radius.md,
   },
-  addBtnText: { color: colors.white, fontWeight: typography.fontWeightSemibold, fontSize: typography.fontSizeSm },
+  addBtnText: { color: colors.white, fontFamily: fonts.semiBold, fontSize: typography.fontSizeSm },
   list: { padding: spacing.base, gap: spacing.sm },
   card: {
     flexDirection: 'row',
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
     marginRight: spacing.md,
   },
   info: { flex: 1 },
-  patientName: { fontSize: typography.fontSizeBase, fontWeight: typography.fontWeightSemibold, color: colors.textPrimary },
+  patientName: { fontSize: typography.fontSizeBase, fontFamily: fonts.semiBold, color: colors.textPrimary },
   meta: { fontSize: typography.fontSizeXs, color: colors.textSecondary, marginTop: 2 },
   refId: { fontSize: 11, color: colors.textMuted, marginTop: 1 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  modalTitle: { fontSize: typography.fontSizeLg, fontWeight: typography.fontWeightBold, color: colors.textPrimary },
+  modalTitle: { fontSize: typography.fontSizeLg, fontFamily: fonts.bold, color: colors.textPrimary },
   closeBtn: { fontSize: 20, color: colors.textSecondary, padding: spacing.xs },
   modalContent: { padding: spacing.base },
   formError: {
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.base,
   },
   genderRow: { marginBottom: spacing.base },
-  fieldLabel: { fontSize: typography.fontSizeSm, fontWeight: typography.fontWeightMedium, color: colors.textSecondary, marginBottom: spacing.xs },
+  fieldLabel: { fontSize: typography.fontSizeSm, fontFamily: fonts.medium, color: colors.textSecondary, marginBottom: spacing.xs },
   genderOptions: { flexDirection: 'row', gap: spacing.sm },
   genderOption: {
     paddingVertical: spacing.sm,
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
   },
   genderOptionActive: { backgroundColor: colors.primaryLight, borderColor: colors.primary },
   genderOptionText: { fontSize: typography.fontSizeSm, color: colors.textSecondary },
-  genderOptionTextActive: { color: colors.primary, fontWeight: typography.fontWeightSemibold },
+  genderOptionTextActive: { color: colors.primary, fontFamily: fonts.semiBold },
   submitBtn: { marginTop: spacing.sm },
 })
 

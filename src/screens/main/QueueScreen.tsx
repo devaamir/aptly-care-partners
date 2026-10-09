@@ -30,17 +30,48 @@ import type {
 } from '../../services/types'
 import { useAppContext } from '../../context/AppContext'
 import Badge, { tokenStatusVariant } from '../../components/Badge'
-import { colors, typography, spacing, radius } from '../../styles/theme'
+import { colors, typography, spacing, radius, fonts } from '../../styles/theme'
+import { SIZE } from '../../themes/sizes'
 import {
-  ReloadIcon,
-  SearchIcon,
   InstantPauseIcon,
-  ClockBlueIcon,
+  ScheduledPauseIcon,
   RightArrowIcon,
+  SkipIcon,
 } from '../../assets/icons'
 
 const defaultDoctorAvatar = require('../../assets/images/doctor-profile.png')
-const defaultUserAvatar = require('../../assets/images/user-profile.png')
+
+const AVATAR_COLORS = [
+  { bg: '#E8F0FE', text: '#4285F4' },
+  { bg: '#E6F4EA', text: '#34A853' },
+  { bg: '#FEF3E8', text: '#F57C00' },
+  { bg: '#F3E8FE', text: '#9334EA' },
+  { bg: '#E8F9FE', text: '#0288D1' },
+  { bg: '#FCE8E8', text: '#E53935' },
+]
+
+const getInitials = (name: string) => {
+  const parts = name.trim().split(' ').filter(Boolean)
+  if (parts.length === 0) return 'P'
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
+
+const getAvatarColor = (name: string) => {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash += name.charCodeAt(i)
+  return AVATAR_COLORS[hash % AVATAR_COLORS.length]
+}
+
+const getStatusConfig = (status: string) => {
+  switch (status) {
+    case 'done': return { label: 'Completed', dotColor: '#16A34A', textColor: '#16A34A', solid: false }
+    case 'ongoing': return { label: 'Current', dotColor: colors.primary, textColor: colors.primary, solid: true }
+    case 'skipped': return { label: 'Skipped', dotColor: '#F59E0B', textColor: '#D97706', solid: false }
+    case 'cancelled': return { label: 'Cancelled', dotColor: '#EF4444', textColor: '#DC2626', solid: false }
+    default: return { label: 'Waiting', dotColor: '#94A3B8', textColor: '#64748B', solid: false }
+  }
+}
 
 interface QueueDoctor {
   id: string
@@ -92,8 +123,6 @@ const formatPatientSubtitle = (patient?: { gender?: string; dateOfBirth?: string
   return parts.length > 0 ? parts.join(' • ') : 'No additional info'
 }
 
-type FilterTab = 'all' | 'ongoing' | 'pending' | 'done' | 'cancelled'
-
 const QueueScreen: React.FC = () => {
   const { activeContext, activeDoctor } = useAppContext()
   const isDoctor = activeContext?.role?.toLowerCase() === 'doctor'
@@ -119,10 +148,6 @@ const QueueScreen: React.FC = () => {
   const [connected, setConnected] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
-  // Search & Filter state
-  const [searchQuery, setSearchQuery] = useState('')
-  const [showSearch, setShowSearch] = useState(false)
-  const [activeFilterTab, setActiveFilterTab] = useState<FilterTab>('all')
 
   // Pause modal state
   const [showPauseModal, setShowPauseModal] = useState(false)
@@ -463,104 +488,12 @@ const QueueScreen: React.FC = () => {
         .sort((a, b) => a.tokenNumber - b.tokenNumber),
     [queueData.appointments]
   )
-  const doneAppts = useMemo(
-    () =>
-      queueData.appointments
-        .filter(a => a.tokenStatus === 'done' || a.tokenStatus === 'skipped')
-        .sort((a, b) => a.tokenNumber - b.tokenNumber),
-    [queueData.appointments]
-  )
-  const cancelledAppts = useMemo(
-    () =>
-      queueData.appointments
-        .filter(a => a.tokenStatus === 'cancelled')
-        .sort((a, b) => a.tokenNumber - b.tokenNumber),
-    [queueData.appointments]
-  )
-
   const activePauses = queueData.activePauses || []
   const isPaused = activePauses.length > 0
 
-  const displayList = useMemo(() => {
-    let list: QueueAppointment[] = []
-
-    if (activeFilterTab === 'all') {
-      list = [...queueData.appointments].sort((a, b) => a.tokenNumber - b.tokenNumber)
-    } else if (activeFilterTab === 'ongoing') {
-      list = ongoingAppts
-    } else if (activeFilterTab === 'pending') {
-      list = pendingAppts
-    } else if (activeFilterTab === 'done') {
-      list = doneAppts
-    } else if (activeFilterTab === 'cancelled') {
-      list = cancelledAppts
-    }
-
-    if (!searchQuery.trim()) return list
-    const q = searchQuery.toLowerCase().trim()
-    return list.filter(
-      a =>
-        a.patient.name.toLowerCase().includes(q) ||
-        a.patient.phoneNumber.includes(q) ||
-        String(a.tokenNumber).includes(q)
-    )
-  }, [ongoingAppts, pendingAppts, doneAppts, cancelledAppts, activeFilterTab, searchQuery])
-
-  const statFilterCards = useMemo(
-    () => [
-      {
-        id: 'all' as FilterTab,
-        label: 'All',
-        count: queueData.appointments.length,
-        color: colors.primary,
-        dotColor: colors.primary,
-        activeBorder: colors.primary,
-        activeBg: '#EFF6FF',
-      },
-      {
-        id: 'pending' as FilterTab,
-        label: 'Waiting',
-        count: pendingAppts.length,
-        color: '#2563EB',
-        dotColor: '#2563EB',
-        activeBorder: '#2563EB',
-        activeBg: '#EFF6FF',
-      },
-      {
-        id: 'ongoing' as FilterTab,
-        label: 'In Consult',
-        count: ongoingAppts.length,
-        color: '#D97706',
-        dotColor: '#F59E0B',
-        activeBorder: '#F59E0B',
-        activeBg: '#FFFBEB',
-      },
-      {
-        id: 'done' as FilterTab,
-        label: 'Completed',
-        count: doneAppts.length,
-        color: '#15803D',
-        dotColor: '#16A34A',
-        activeBorder: '#16A34A',
-        activeBg: '#F0FDF4',
-      },
-      {
-        id: 'cancelled' as FilterTab,
-        label: 'Cancelled',
-        count: cancelledAppts.length,
-        color: '#DC2626',
-        dotColor: '#EF4444',
-        activeBorder: '#EF4444',
-        activeBg: '#FEF2F2',
-      },
-    ],
-    [
-      queueData.appointments.length,
-      pendingAppts.length,
-      ongoingAppts.length,
-      doneAppts.length,
-      cancelledAppts.length,
-    ]
+  const displayList = useMemo(
+    () => [...queueData.appointments].sort((a, b) => a.tokenNumber - b.tokenNumber),
+    [queueData.appointments]
   )
 
   // RENDER: Loading Doctors
@@ -593,77 +526,60 @@ const QueueScreen: React.FC = () => {
   const renderQueueItem = ({ item }: { item: QueueAppointment }) => {
     const isOngoing = item.tokenStatus === 'ongoing'
     const isSkipped = item.tokenStatus === 'skipped'
-    const isDone = item.tokenStatus === 'done'
     const isCancelled = item.tokenStatus === 'cancelled'
+    const isPending = item.tokenStatus === 'pending'
+
+    const initials = getInitials(item.patient.name)
+    const avatarColor = getAvatarColor(item.patient.name)
+    const tokenStr = String(item.tokenNumber).padStart(2, '0')
+    const statusCfg = getStatusConfig(item.tokenStatus)
+    const apptTime = item.createdAt ? formatTo12h(item.createdAt.slice(11, 16)) : '—'
 
     return (
-      <View
-        style={[
-          styles.queueCard,
-          isOngoing && styles.queueCardOngoing,
-          isCancelled && styles.queueCardCancelled,
-        ]}
-      >
-        {/* Left: Token Number Pill Badge */}
+      <View style={[
+        styles.queueCard,
+        isOngoing && styles.queueCardCurrent,
+        isCancelled && styles.queueCardCancelled,
+      ]}>
+        {/* Left: token number + time */}
         <View style={styles.tokenCol}>
-          <View
-            style={[
-              styles.tokenBox,
-              isOngoing && styles.tokenBoxOngoing,
-              isDone && styles.tokenBoxDone,
-              isSkipped && styles.tokenBoxSkipped,
-              isCancelled && styles.tokenBoxCancelled,
-            ]}
-          >
-            <Text
-              style={[
-                styles.tokenNum,
-                isOngoing && styles.tokenNumOngoing,
-                isDone && styles.tokenNumDone,
-                isSkipped && styles.tokenNumSkipped,
-                isCancelled && styles.tokenNumCancelled,
-              ]}
-            >
-              #{item.tokenNumber}
+          <View style={[styles.tokenBox, isOngoing && styles.tokenBoxCurrent]}>
+            <Text style={[styles.tokenNumText, isOngoing && styles.tokenNumTextCurrent]}>
+              {tokenStr}
             </Text>
           </View>
+          <Text style={styles.tokenTime}>{apptTime}</Text>
         </View>
 
-        {/* Middle: Patient Details */}
+        {/* Initials avatar */}
+        <View style={[styles.initialsCircle, { backgroundColor: avatarColor.bg }]}>
+          <Text style={[styles.initialsText, { color: avatarColor.text }]}>{initials}</Text>
+        </View>
+
+        {/* Patient name + phone */}
         <View style={styles.queueInfo}>
-          <View style={styles.patientRow}>
-            <Image source={defaultUserAvatar} style={styles.patientMiniAvatar} />
-            <Text
-              style={[
-                styles.queuePatient,
-                isCancelled && styles.queuePatientCancelled,
-              ]}
-              numberOfLines={1}
-            >
-              {item.patient.name}
-            </Text>
-          </View>
-          <Text style={styles.queueMeta} numberOfLines={1}>
-            {formatPatientSubtitle(item.patient)}
+          <Text style={[styles.queuePatient, isCancelled && styles.queuePatientCancelled]} numberOfLines={1}>
+            {item.patient.name}
           </Text>
-
-          {isOngoing && (
-            <View style={styles.ongoingBadgeWrap}>
-              <View style={styles.pulsingDot} />
-              <Text style={styles.ongoingLabel}>In Consultation</Text>
-            </View>
-          )}
-
-          {isCancelled && (
-            <Text style={styles.cancelledLabel}>✕ Cancelled</Text>
-          )}
+          <Text style={styles.queuePhone} numberOfLines={1}>
+            {item.patient.phoneNumber || '—'}
+          </Text>
         </View>
 
-        {/* Right: Badge & Actions */}
+        {/* Status + actions */}
         <View style={styles.queueActionsCol}>
-          <Badge label={item.tokenStatus} variant={tokenStatusVariant(item.tokenStatus)} />
+          <View style={styles.statusRow}>
+            <View style={[
+              styles.statusDot,
+              { backgroundColor: statusCfg.dotColor },
+              statusCfg.solid && styles.statusDotSolid,
+            ]} />
+            <Text style={[styles.statusText, { color: statusCfg.textColor }]}>
+              {statusCfg.label}
+            </Text>
+          </View>
 
-          {item.tokenStatus === 'pending' && (
+          {isPending && (
             <View style={styles.actionsRow}>
               <TouchableOpacity
                 style={styles.miniBtn}
@@ -693,16 +609,14 @@ const QueueScreen: React.FC = () => {
           )}
 
           {isOngoing && (
-            <View style={styles.actionsRow}>
-              <TouchableOpacity
-                style={[styles.miniBtn, styles.miniBtnDone]}
-                onPress={() => handleStatusUpdate(item.id, 'done')}
-                disabled={actionLoading === item.id}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.miniBtnText, { color: colors.white }]}>Done ✓</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={[styles.miniBtn, styles.miniBtnDone]}
+              onPress={() => handleStatusUpdate(item.id, 'done')}
+              disabled={actionLoading === item.id}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.miniBtnText, { color: colors.white }]}>Done ✓</Text>
+            </TouchableOpacity>
           )}
 
           {isSkipped && (
@@ -721,26 +635,24 @@ const QueueScreen: React.FC = () => {
                 disabled={actionLoading === item.id}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.miniBtnText, { color: colors.danger }]}>Cancel</Text>
+                <Text style={[styles.miniBtnText, { color: colors.danger }]}>✕</Text>
               </TouchableOpacity>
             </View>
           )}
 
           {isCancelled && (
-            <View style={styles.actionsRow}>
-              <TouchableOpacity
-                style={[styles.miniBtn, styles.miniBtnReopen]}
-                onPress={() => handleStatusUpdate(item.id, 'pending')}
-                disabled={actionLoading === item.id}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.miniBtnReopenText}>Reopen</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={[styles.miniBtn, styles.miniBtnReopen]}
+              onPress={() => handleStatusUpdate(item.id, 'pending')}
+              disabled={actionLoading === item.id}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.miniBtnReopenText}>Reopen</Text>
+            </TouchableOpacity>
           )}
 
           {actionLoading === item.id && (
-            <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 4 }} />
+            <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: SIZE(4) }} />
           )}
         </View>
       </View>
@@ -749,59 +661,12 @@ const QueueScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      {/* 1. Header Bar with Title, Live Badge, Search & Reload */}
+      {/* 1. Header */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.headerTitle}>Queue Management</Text>
-          <View style={[styles.liveChip, connected ? styles.liveChipActive : styles.liveChipInactive]}>
-            <View style={[styles.liveDot, connected ? styles.liveDotActive : styles.liveDotInactive]} />
-            <Text style={[styles.liveChipText, connected ? styles.liveChipTextActive : styles.liveChipTextInactive]}>
-              {connected ? 'LIVE' : 'SYNCING'}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.headerRight}>
-          <TouchableOpacity
-            style={[styles.iconBtn, showSearch && styles.iconBtnActive]}
-            onPress={() => setShowSearch(prev => !prev)}
-            activeOpacity={0.7}
-          >
-            <SearchIcon width={17} height={17} fill={showSearch ? colors.primary : colors.textSecondary} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.iconBtn}
-            onPress={onRefresh}
-            disabled={refreshing}
-            activeOpacity={0.7}
-          >
-            <ReloadIcon width={17} height={17} fill={colors.textSecondary} />
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.headerTitle}>Queue Management</Text>
       </View>
 
-      {/* 2. Search Bar Dropdown */}
-      {showSearch && (
-        <View style={styles.searchBarWrap}>
-          <SearchIcon width={16} height={16} fill={colors.placeholder} style={styles.searchIconInside} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search by name, token (#) or phone..."
-            placeholderTextColor={colors.placeholder}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            autoFocus
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.searchClearBtn}>
-              <Text style={styles.searchClearText}>Clear</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
-
-      {/* 3. Doctor Selector Pills (Parity with Web Clinic Managers) */}
+      {/* 2. Doctor Selector Tabs */}
       {doctors.length > 1 && (
         <View style={styles.doctorTabsWrap}>
           <ScrollView
@@ -818,21 +683,7 @@ const QueueScreen: React.FC = () => {
                   onPress={() => setSelectedDoctorId(doc.id)}
                   activeOpacity={0.8}
                 >
-                  <Image
-                    source={
-                      doc.profilePicture
-                        ? { uri: doc.profilePicture }
-                        : defaultDoctorAvatar
-                    }
-                    style={styles.doctorTabAvatar}
-                  />
-                  <Text
-                    style={[
-                      styles.doctorTabText,
-                      isSelected && styles.doctorTabTextActive,
-                    ]}
-                    numberOfLines={1}
-                  >
+                  <Text style={[styles.doctorTabText, isSelected && styles.doctorTabTextActive]} numberOfLines={1}>
                     Dr. {doc.name}
                   </Text>
                 </TouchableOpacity>
@@ -842,91 +693,91 @@ const QueueScreen: React.FC = () => {
         </View>
       )}
 
-      {/* 4. Active Doctor & Session Hero Card */}
+      {/* 4. Session Tab Strip */}
+      {schedules.length > 0 && (
+        <View style={styles.sessionTabBar}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sessionTabBarContent}>
+            {schedules.map(s => {
+              const isActive = selectedSchedule?.id === s.id
+              return (
+                <TouchableOpacity
+                  key={s.id}
+                  style={[styles.sessionTab, isActive && styles.sessionTabActive]}
+                  onPress={() => setSelectedSchedule(s)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.sessionTabText, isActive && styles.sessionTabTextActive]}>
+                    {formatTo12h(s.startTime).toLowerCase()} – {formatTo12h(s.stopTime).toLowerCase()}
+                  </Text>
+                </TouchableOpacity>
+              )
+            })}
+          </ScrollView>
+        </View>
+      )}
+
+      {/* 5. Hero Card */}
       {currentDoctor && (
         <View style={styles.heroCard}>
+          {/* Doctor row */}
           <View style={styles.heroTop}>
             <Image
-              source={
-                currentDoctor.profilePicture
-                  ? { uri: currentDoctor.profilePicture }
-                  : defaultDoctorAvatar
-              }
+              source={currentDoctor.profilePicture ? { uri: currentDoctor.profilePicture } : defaultDoctorAvatar}
               style={styles.heroAvatar}
             />
-
             <View style={styles.heroDoctorInfo}>
-              <Text style={styles.heroDoctorName} numberOfLines={1}>
-                Dr. {currentDoctor.name}
-              </Text>
+              <View style={styles.heroDoctorNameRow}>
+                <Text style={styles.heroDoctorName} numberOfLines={1}>Dr. {currentDoctor.name}</Text>
+                <View style={styles.liveBadge}>
+                  <View style={styles.liveDotGreen} />
+                  <Text style={styles.liveBadgeText}>Live</Text>
+                </View>
+              </View>
               <Text style={styles.heroDoctorSpecialty} numberOfLines={1}>
                 {currentDoctor.specialties && currentDoctor.specialties.length > 0
                   ? currentDoctor.specialties.join(', ')
                   : 'Physician'}
               </Text>
-
-              {selectedSchedule && (
-                <View style={styles.heroTimeRow}>
-                  <ClockBlueIcon width={13} height={13} stroke={colors.primary} />
-                  <Text style={styles.heroTimeText}>
-                    {formatTo12h(selectedSchedule.startTime)} – {formatTo12h(selectedSchedule.stopTime)}
-                  </Text>
-                </View>
-              )}
             </View>
+          </View>
 
-            {/* Pause / Resume Button */}
-            {selectedSchedule && (
+          {/* Action buttons row */}
+          {selectedSchedule && (
+            <View style={styles.heroBtnsRow}>
               <TouchableOpacity
-                style={[styles.heroPauseBtn, isPaused && styles.heroPauseBtnActive]}
+                style={[styles.heroPill, isPaused && styles.heroPillActive]}
+                onPress={() => handleQuickPause(15)}
+                activeOpacity={0.8}
+              >
+                <InstantPauseIcon width={16} height={16} fill={isPaused ? colors.white : colors.textSecondary} />
+                <Text style={[styles.heroPillText, isPaused && styles.heroPillTextActive]}>Instant Pause</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.heroPill}
                 onPress={() => setShowPauseModal(true)}
                 activeOpacity={0.8}
               >
-                <InstantPauseIcon width={14} height={14} fill={isPaused ? colors.white : colors.warning} />
-                <Text style={[styles.heroPauseText, isPaused && styles.heroPauseTextActive]}>
-                  {isPaused ? 'Paused' : 'Pause'}
-                </Text>
+                <ScheduledPauseIcon width={16} height={16} fill={colors.textSecondary} />
+                <Text style={styles.heroPillText}>Scheduled Pause</Text>
               </TouchableOpacity>
-            )}
-          </View>
 
-          {/* Multiple Schedule Session Tabs */}
-          {schedules.length > 1 && (
-            <View style={styles.sessionsRow}>
-              {schedules.map((s, idx) => {
-                const isSelected = selectedSchedule?.id === s.id
-                return (
-                  <TouchableOpacity
-                    key={s.id}
-                    style={[styles.sessionChip, isSelected && styles.sessionChipActive]}
-                    onPress={() => setSelectedSchedule(s)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={[styles.sessionChipText, isSelected && styles.sessionChipTextActive]}>
-                      Session {idx + 1}: {formatTo12h(s.startTime)} – {formatTo12h(s.stopTime)}
-                    </Text>
-                  </TouchableOpacity>
-                )
-              })}
+              <TouchableOpacity
+                style={styles.heroPill}
+                onPress={() => ongoingAppts.length > 0 && handleStatusUpdate(ongoingAppts[0].id, 'skipped')}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.heroPillText}>Skip</Text>
+                <SkipIcon width={16} height={16} fill={colors.textSecondary} />
+              </TouchableOpacity>
             </View>
           )}
 
-          {/* Prominent Quick Action Button: Next Token / Start Now */}
+          {/* Next Token CTA */}
           {selectedSchedule && pendingAppts.length > 0 && (
-            <TouchableOpacity
-              style={[
-                styles.quickCtaBtn,
-                ongoingAppts.length > 0 ? styles.quickCtaNext : styles.quickCtaStart,
-              ]}
-              onPress={handleNextToken}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.quickCtaText}>
-                {ongoingAppts.length > 0
-                  ? `Next Token (${pendingAppts[0]?.tokenNumber ? `#${pendingAppts[0].tokenNumber}` : 'Next'})`
-                  : `Start Consultation (#${pendingAppts[0]?.tokenNumber || '1'})`}
-              </Text>
-              <RightArrowIcon width={14} height={14} fill={colors.white} />
+            <TouchableOpacity style={styles.nextTokenBtn} onPress={handleNextToken} activeOpacity={0.85}>
+              <Text style={styles.nextTokenText}>Next Token</Text>
+              <RightArrowIcon width={16} height={16} fill={colors.white} />
             </TouchableOpacity>
           )}
         </View>
@@ -951,69 +802,7 @@ const QueueScreen: React.FC = () => {
         </View>
       )}
 
-      {/* 6. Interactive Summary Stat Filter Cards */}
-      {selectedSchedule && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.statsStripContent}
-          style={styles.statsStripScroll}
-        >
-          {statFilterCards.map(card => {
-            const isActive = activeFilterTab === card.id
-            return (
-              <TouchableOpacity
-                key={card.id}
-                style={[
-                  styles.statCard,
-                  isActive
-                    ? { borderColor: card.activeBorder, backgroundColor: card.activeBg, borderWidth: 2 }
-                    : styles.statCardInactive,
-                ]}
-                onPress={() => setActiveFilterTab(card.id)}
-                activeOpacity={0.75}
-              >
-                <Text
-                  style={[
-                    styles.statValue,
-                    { color: isActive ? card.color : colors.textPrimary },
-                  ]}
-                >
-                  {card.count}
-                </Text>
-                <View style={styles.statLabelRow}>
-                  <View style={[styles.statDot, { backgroundColor: card.dotColor }]} />
-                  <Text
-                    style={[
-                      styles.statLabel,
-                      isActive && { color: card.color, fontWeight: typography.fontWeightBold },
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {card.label}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            )
-          })}
-        </ScrollView>
-      )}
-
-      {/* Section Title Header */}
-      <View style={styles.sectionHeaderRow}>
-        <View style={styles.sectionTitleWrap}>
-          <Text style={styles.sectionTitle}>
-            {activeFilterTab === 'all'
-              ? 'Patients in Queue'
-              : `${statFilterCards.find(c => c.id === activeFilterTab)?.label || ''} Patients`}
-          </Text>
-          <View style={styles.countBadge}>
-            <Text style={styles.countBadgeText}>{displayList.length}</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* 8. Main Queue Patient List */}
+      {/* Queue Patient List */}
       {loadingSchedules ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -1049,11 +838,7 @@ const QueueScreen: React.FC = () => {
           </View>
           <Text style={styles.emptyTitle}>Queue is Empty</Text>
           <Text style={styles.emptySubtitle}>
-            {searchQuery
-              ? 'No appointments matched your search query.'
-              : activeFilterTab !== 'all'
-              ? `No ${activeFilterTab} appointments in this session.`
-              : 'All patients have been consulted or no appointments booked yet.'}
+            {'All patients have been consulted or no appointments booked yet.'}
           </Text>
         </ScrollView>
       ) : (
@@ -1150,326 +935,231 @@ const QueueScreen: React.FC = () => {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#F7F9FC',
+    backgroundColor: colors.pageBg,
   },
   centered: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: spacing.xl,
+    padding: SIZE(24),
   },
   loadingText: {
-    marginTop: spacing.sm,
+    marginTop: SIZE(8),
     color: colors.textSecondary,
-    fontSize: typography.fontSizeSm,
+    fontSize: SIZE(13),
+    fontFamily: fonts.regular,
   },
   emptyCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: SIZE(80),
+    height: SIZE(80),
+    borderRadius: SIZE(40),
     backgroundColor: '#EEF4FF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.base,
+    marginBottom: SIZE(16),
   },
-  emptyIcon: {
-    fontSize: 36,
-  },
+  emptyIcon: { fontSize: SIZE(36) },
   emptyTitle: {
-    fontSize: typography.fontSizeLg,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(18),
+    fontFamily: fonts.bold,
     color: colors.textPrimary,
   },
   emptySubtitle: {
-    fontSize: typography.fontSizeSm,
+    fontSize: SIZE(13),
     color: colors.textSecondary,
     textAlign: 'center',
-    marginTop: spacing.xs,
-    paddingHorizontal: spacing.xl,
-    lineHeight: 20,
+    marginTop: SIZE(4),
+    paddingHorizontal: SIZE(24),
+    lineHeight: SIZE(20),
   },
 
-  // 1. Header Bar
+  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.base,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: SIZE(16),
+    paddingTop: SIZE(12),
+    paddingBottom: SIZE(12),
     backgroundColor: colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEF0F4',
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
+    borderBottomColor: '#EAECF0',
   },
   headerTitle: {
-    fontSize: typography.fontSizeLg,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(22),
+    fontFamily: fonts.bold,
     color: colors.textPrimary,
     letterSpacing: -0.3,
   },
-  liveChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: radius.full,
-    gap: 5,
-  },
-  liveChipActive: {
-    backgroundColor: '#ECFDF3',
-  },
-  liveChipInactive: {
-    backgroundColor: '#FEF3C7',
-  },
-  liveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  liveDotActive: {
-    backgroundColor: colors.success,
-  },
-  liveDotInactive: {
-    backgroundColor: colors.warning,
-  },
-  liveChipText: {
-    fontSize: 10,
-    fontWeight: typography.fontWeightBold,
-    letterSpacing: 0.5,
-  },
-  liveChipTextActive: {
-    color: '#027A48',
-  },
-  liveChipTextInactive: {
-    color: '#B54708',
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  iconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F4F6F9',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#E8ECF2',
-  },
-  iconBtnActive: {
-    backgroundColor: '#EAF3FF',
-    borderColor: colors.primary,
-  },
 
-  // 2. Search Dropdown
-  searchBarWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    paddingHorizontal: spacing.base,
-    paddingVertical: spacing.xs,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEF0F4',
-  },
-  searchIconInside: {
-    marginRight: spacing.xs,
-  },
-  searchInput: {
-    flex: 1,
-    height: 38,
-    fontSize: typography.fontSizeSm,
-    color: colors.textPrimary,
-  },
-  searchClearBtn: {
-    paddingHorizontal: spacing.xs,
-  },
-  searchClearText: {
-    fontSize: typography.fontSizeXs,
-    color: colors.primary,
-    fontWeight: typography.fontWeightSemibold,
-  },
-
-  // 3. Doctor Selector Tabs
+  // Doctor Tabs
   doctorTabsWrap: {
     backgroundColor: colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEF0F4',
+    borderBottomColor: '#EAECF0',
   },
   doctorTabsContent: {
-    paddingHorizontal: spacing.base,
-    paddingVertical: spacing.sm,
-    gap: spacing.xs,
+    paddingHorizontal: SIZE(16),
+    paddingVertical: SIZE(8),
+    gap: SIZE(8),
   },
   doctorTab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: spacing.md,
+    paddingVertical: SIZE(7),
+    paddingHorizontal: SIZE(12),
     borderRadius: radius.full,
-    backgroundColor: '#F4F6FA',
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: '#E2E6EE',
+    borderColor: '#D0D5DD',
   },
   doctorTabActive: {
-    backgroundColor: '#EAF3FF',
     borderColor: colors.primary,
-  },
-  doctorTabAvatar: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    marginRight: 6,
+    backgroundColor: colors.white,
   },
   doctorTabText: {
-    fontSize: typography.fontSizeXs,
+    fontSize: SIZE(13),
     color: colors.textSecondary,
-    fontWeight: typography.fontWeightMedium,
+    fontFamily: fonts.medium,
   },
   doctorTabTextActive: {
     color: colors.primary,
-    fontWeight: typography.fontWeightBold,
+    fontFamily: fonts.semiBold,
   },
 
-  // 4. Hero Card
-  heroCard: {
-    marginHorizontal: spacing.base,
-    marginTop: spacing.base,
+  // Session Tab Strip
+  sessionTabBar: {
     backgroundColor: colors.white,
-    borderRadius: radius.lg,
-    padding: spacing.base,
-    borderWidth: 1,
-    borderColor: '#E5E9F0',
-    shadowColor: '#101828',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-    gap: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EAECF0',
+  },
+  sessionTabBarContent: {
+    paddingHorizontal: SIZE(16),
+    gap: SIZE(20),
+  },
+  sessionTab: {
+    paddingVertical: SIZE(10),
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  sessionTabActive: {
+    borderBottomColor: '#FF7B63',
+  },
+  sessionTabText: {
+    fontSize: SIZE(13),
+    fontFamily: fonts.medium,
+    color: colors.textSecondary,
+  },
+  sessionTabTextActive: {
+    fontFamily: fonts.semiBold,
+    color: '#FF7B63',
+  },
+
+  // Hero Section
+  heroCard: {
+    backgroundColor: colors.white,
+    paddingHorizontal: SIZE(16),
+    paddingTop: SIZE(16),
+    paddingBottom: SIZE(16),
+    gap: SIZE(12),
+    borderBottomWidth: 1,
+    borderBottomColor: '#EAECF0',
   },
   heroTop: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: SIZE(12),
   },
   heroAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginRight: spacing.md,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    width: SIZE(46),
+    height: SIZE(46),
+    borderRadius: SIZE(23),
   },
-  heroDoctorInfo: {
-    flex: 1,
+  heroDoctorInfo: { flex: 1 },
+  heroDoctorNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SIZE(8),
+    flexWrap: 'nowrap',
   },
   heroDoctorName: {
-    fontSize: typography.fontSizeMd,
-    fontWeight: typography.fontWeightBold,
-    color: colors.textPrimary,
+    fontSize: SIZE(16),
+    fontFamily: fonts.regular,
+    color: '#0A0A0A',
+    flexShrink: 1,
   },
   heroDoctorSpecialty: {
-    fontSize: typography.fontSizeXs,
+    fontSize: SIZE(11),
     color: colors.textSecondary,
-    marginTop: 1,
+    fontFamily: fonts.regular,
+    marginTop: SIZE(2),
   },
-  heroTimeRow: {
+  liveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginTop: 4,
-  },
-  heroTimeText: {
-    fontSize: typography.fontSizeXs,
-    color: colors.primary,
-    fontWeight: typography.fontWeightMedium,
-  },
-  heroPauseBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingVertical: 6,
-    paddingHorizontal: spacing.md,
+    gap: SIZE(5),
+    backgroundColor: '#ECFDF3',
+    paddingHorizontal: SIZE(10),
+    paddingVertical: SIZE(4),
     borderRadius: radius.full,
-    backgroundColor: colors.warningLight,
-    borderWidth: 1,
-    borderColor: '#FDE68A',
   },
-  heroPauseBtnActive: {
-    backgroundColor: colors.warning,
-    borderColor: colors.warning,
+  liveDotGreen: {
+    width: SIZE(7),
+    height: SIZE(7),
+    borderRadius: SIZE(4),
+    backgroundColor: '#16A34A',
   },
-  heroPauseText: {
-    fontSize: typography.fontSizeXs,
-    color: colors.warning,
-    fontWeight: typography.fontWeightBold,
+  liveBadgeText: {
+    fontSize: SIZE(13),
+    fontFamily: fonts.semiBold,
+    color: '#16A34A',
   },
-  heroPauseTextActive: {
-    color: colors.white,
-  },
-  sessionsRow: {
+  heroBtnsRow: {
     flexDirection: 'row',
-    gap: spacing.xs,
-    flexWrap: 'wrap',
-    borderTopWidth: 1,
-    borderTopColor: '#F0F2F6',
-    paddingTop: spacing.xs,
+    gap: SIZE(8),
   },
-  sessionChip: {
-    paddingVertical: 4,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radius.sm,
-    backgroundColor: '#F4F6F9',
+  heroPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SIZE(5),
+    paddingVertical: SIZE(8),
+    paddingHorizontal: SIZE(14),
+    borderRadius: radius.md,
+    backgroundColor: '#F1F2F4',
+    borderWidth: 1,
+    borderColor: '#E8EAED',
   },
-  sessionChipActive: {
-    backgroundColor: '#EAF3FF',
-  },
-  sessionChipText: {
-    fontSize: 11,
+  heroPillActive: {},
+  heroPillText: {
+    fontSize: SIZE(13),
+    fontFamily: fonts.medium,
     color: colors.textSecondary,
-    fontWeight: typography.fontWeightMedium,
   },
-  sessionChipTextActive: {
-    color: colors.primary,
-    fontWeight: typography.fontWeightBold,
+  heroPillTextActive: {
+    color: colors.white,
+    fontFamily: fonts.semiBold,
   },
-  quickCtaBtn: {
+  nextTokenBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.xs,
-    paddingVertical: 10,
+    gap: SIZE(8),
+    paddingVertical: SIZE(14),
     borderRadius: radius.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  quickCtaStart: {
-    backgroundColor: colors.primary,
-  },
-  quickCtaNext: {
     backgroundColor: '#16A34A',
   },
-  quickCtaText: {
-    fontSize: typography.fontSizeSm,
-    fontWeight: typography.fontWeightBold,
+  nextTokenText: {
+    fontSize: SIZE(15),
+    fontFamily: fonts.bold,
     color: colors.white,
   },
 
-  // 5. Pause Banner
+  // Pause Banner
   pauseBanner: {
-    marginHorizontal: spacing.base,
-    marginTop: spacing.sm,
+    marginHorizontal: SIZE(16),
+    marginTop: SIZE(8),
     backgroundColor: '#FFF7EC',
     borderRadius: radius.md,
-    paddingHorizontal: spacing.base,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: SIZE(16),
+    paddingVertical: SIZE(8),
     borderWidth: 1,
     borderColor: '#FED7AA',
     flexDirection: 'row',
@@ -1479,247 +1169,154 @@ const styles = StyleSheet.create({
   pauseItemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: SIZE(4),
     flex: 1,
   },
   pauseText: {
-    fontSize: typography.fontSizeXs,
+    fontSize: SIZE(11),
     color: '#B54708',
-    fontWeight: typography.fontWeightMedium,
+    fontFamily: fonts.medium,
   },
   resumeBtn: {
     backgroundColor: '#F79009',
-    paddingHorizontal: spacing.md,
-    paddingVertical: 5,
+    paddingHorizontal: SIZE(12),
+    paddingVertical: SIZE(5),
     borderRadius: radius.sm,
   },
   resumeBtnText: {
-    fontSize: typography.fontSizeXs,
+    fontSize: SIZE(11),
     color: colors.white,
-    fontWeight: typography.fontWeightBold,
+    fontFamily: fonts.bold,
   },
 
-  // 6. Interactive Summary Stat Filter Cards
-  statsStripScroll: {
-    marginTop: spacing.sm,
-  },
-  statsStripContent: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.base,
-    paddingVertical: 2,
-  },
-  statCard: {
-    minWidth: 78,
-    backgroundColor: colors.white,
-    borderRadius: radius.md,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-  },
-  statCardInactive: {
-    borderColor: '#E8ECF2',
-    backgroundColor: colors.white,
-  },
-  statValue: {
-    fontSize: 17,
-    fontWeight: typography.fontWeightBold,
-    lineHeight: 22,
-    marginBottom: 4,
-  },
-  statLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  statDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  statLabel: {
-    fontSize: 11,
-    color: colors.textSecondary,
-    fontWeight: typography.fontWeightMedium,
-  },
-
-  // Section Title Header
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.base,
-    marginTop: spacing.md,
-    marginBottom: spacing.xs,
-  },
-  sectionTitleWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginRight: spacing.sm,
-  },
-  sectionTitle: {
-    fontSize: typography.fontSizeBase,
-    fontWeight: typography.fontWeightBold,
-    color: colors.textPrimary,
-  },
-  countBadge: {
-    backgroundColor: '#E2E8F0',
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: radius.full,
-  },
-  countBadgeText: {
-    fontSize: 10,
-    fontWeight: typography.fontWeightBold,
-    color: colors.textSecondary,
-  },
-
-  // 8. Queue List & Cards
+  // Queue List
   queueList: {
-    paddingHorizontal: spacing.base,
-    paddingTop: spacing.xs,
-    paddingBottom: spacing['2xl'],
-    gap: spacing.sm,
+    paddingHorizontal: SIZE(16),
+    paddingTop: SIZE(8),
+    paddingBottom: SIZE(32),
+    gap: SIZE(8),
   },
   queueCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.white,
     borderRadius: radius.lg,
-    padding: spacing.base,
+    paddingVertical: SIZE(14),
+    paddingHorizontal: SIZE(16),
     borderWidth: 1,
     borderColor: '#E8ECF2',
     shadowColor: '#101828',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
     elevation: 1,
+    gap: SIZE(10),
   },
-  queueCardOngoing: {
-    borderColor: '#F59E0B',
-    backgroundColor: '#FFFDF9',
-    shadowColor: '#F59E0B',
-    shadowOpacity: 0.12,
+  queueCardCurrent: {
+    borderColor: colors.primary,
+    backgroundColor: '#F5F9FF',
   },
   queueCardCancelled: {
     borderColor: '#FECACA',
     backgroundColor: '#FFFBFB',
-    opacity: 0.9,
+    opacity: 0.85,
   },
+
+  // Token column
   tokenCol: {
-    marginRight: spacing.md,
+    alignItems: 'center',
+    gap: SIZE(4),
+    minWidth: SIZE(38),
   },
   tokenBox: {
-    width: 44,
-    height: 44,
+    width: SIZE(38),
+    height: SIZE(38),
     borderRadius: radius.md,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#DBEAFE',
   },
-  tokenBoxOngoing: {
-    backgroundColor: '#F59E0B',
-    borderColor: '#D97706',
+  tokenBoxCurrent: {
+    backgroundColor: colors.primary,
   },
-  tokenBoxDone: {
-    backgroundColor: '#F0FDF4',
-    borderColor: '#BBF7D0',
+  tokenNumText: {
+    fontSize: SIZE(13),
+    fontFamily: fonts.bold,
+    color: colors.textPrimary,
   },
-  tokenBoxSkipped: {
-    backgroundColor: '#FFFBEB',
-    borderColor: '#FDE68A',
-  },
-  tokenBoxCancelled: {
-    backgroundColor: '#FEF2F2',
-    borderColor: '#FECACA',
-  },
-  tokenNum: {
-    fontSize: typography.fontSizeBase,
-    fontWeight: typography.fontWeightBold,
-    color: colors.primary,
-  },
-  tokenNumOngoing: {
+  tokenNumTextCurrent: {
     color: colors.white,
   },
-  tokenNumDone: {
-    color: '#15803D',
+  tokenTime: {
+    fontSize: SIZE(10),
+    fontFamily: fonts.regular,
+    color: colors.textMuted,
   },
-  tokenNumSkipped: {
-    color: '#D97706',
+
+  // Initials avatar
+  initialsCircle: {
+    width: SIZE(36),
+    height: SIZE(36),
+    borderRadius: SIZE(18),
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  tokenNumCancelled: {
-    color: '#DC2626',
+  initialsText: {
+    fontSize: SIZE(13),
+    fontFamily: fonts.bold,
   },
+
+  // Patient info
   queueInfo: {
     flex: 1,
-    marginRight: spacing.sm,
-  },
-  patientRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  patientMiniAvatar: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
   },
   queuePatient: {
-    fontSize: typography.fontSizeBase,
-    fontWeight: typography.fontWeightSemibold,
+    fontSize: SIZE(13),
+    fontFamily: fonts.semiBold,
     color: colors.textPrimary,
-    flex: 1,
   },
   queuePatientCancelled: {
     textDecorationLine: 'line-through',
     color: colors.textSecondary,
   },
-  queueMeta: {
-    fontSize: typography.fontSizeXs,
+  queuePhone: {
+    fontSize: SIZE(11),
     color: colors.textSecondary,
-    marginTop: 2,
+    fontFamily: fonts.regular,
+    marginTop: SIZE(2),
   },
-  ongoingBadgeWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 4,
-  },
-  pulsingDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#D97706',
-  },
-  ongoingLabel: {
-    fontSize: 11,
-    color: '#D97706',
-    fontWeight: typography.fontWeightBold,
-  },
-  cancelledLabel: {
-    fontSize: 11,
-    color: colors.danger,
-    fontWeight: typography.fontWeightMedium,
-    marginTop: 2,
-  },
+
+  // Status column
   queueActionsCol: {
     alignItems: 'flex-end',
-    gap: 6,
+    gap: SIZE(6),
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SIZE(5),
+  },
+  statusDot: {
+    width: SIZE(7),
+    height: SIZE(7),
+    borderRadius: SIZE(4),
+  },
+  statusDotSolid: {
+    width: SIZE(9),
+    height: SIZE(9),
+    borderRadius: SIZE(5),
+  },
+  statusText: {
+    fontSize: SIZE(11),
+    fontFamily: fonts.semiBold,
   },
   actionsRow: {
     flexDirection: 'row',
-    gap: 6,
-    marginTop: 2,
+    gap: SIZE(5),
   },
   miniBtn: {
-    paddingVertical: 5,
-    paddingHorizontal: 12,
+    paddingVertical: SIZE(4),
+    paddingHorizontal: SIZE(10),
     borderRadius: radius.full,
     backgroundColor: '#EFF6FF',
     borderWidth: 1,
@@ -1743,30 +1340,30 @@ const styles = StyleSheet.create({
     borderColor: '#BFDBFE',
   },
   miniBtnReopenText: {
-    fontSize: 11,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(11),
+    fontFamily: fonts.bold,
     color: colors.primary,
   },
   miniBtnText: {
-    fontSize: 11,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(11),
+    fontFamily: fonts.semiBold,
     color: colors.primary,
   },
 
-  // 9. Modal Styles
+  // Pause Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(15, 23, 42, 0.65)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.lg,
+    padding: SIZE(20),
   },
   modalCard: {
     width: '100%',
-    maxWidth: 380,
+    maxWidth: SIZE(380),
     backgroundColor: colors.white,
     borderRadius: radius.xl,
-    padding: spacing.xl,
+    padding: SIZE(24),
     elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -1776,42 +1373,42 @@ const styles = StyleSheet.create({
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.base,
+    gap: SIZE(12),
+    marginBottom: SIZE(16),
   },
   modalIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: SIZE(44),
+    height: SIZE(44),
+    borderRadius: SIZE(22),
     backgroundColor: '#FEF3C7',
     alignItems: 'center',
     justifyContent: 'center',
   },
   modalTitle: {
-    fontSize: typography.fontSizeLg,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(18),
+    fontFamily: fonts.bold,
     color: colors.textPrimary,
   },
   modalSubtitle: {
-    fontSize: typography.fontSizeXs,
+    fontSize: SIZE(11),
     color: colors.textSecondary,
-    marginTop: 2,
+    marginTop: SIZE(2),
   },
   modalSectionLabel: {
-    fontSize: 10,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(10),
+    fontFamily: fonts.bold,
     color: colors.textMuted,
     letterSpacing: 0.5,
-    marginBottom: spacing.xs,
+    marginBottom: SIZE(4),
   },
   quickPauseRow: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    marginBottom: spacing.base,
+    gap: SIZE(8),
+    marginBottom: SIZE(16),
   },
   quickPauseBtn: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: SIZE(10),
     backgroundColor: '#FFF7EC',
     borderRadius: radius.md,
     borderWidth: 1,
@@ -1819,47 +1416,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   quickPauseBtnText: {
-    fontSize: typography.fontSizeSm,
+    fontSize: SIZE(13),
     color: '#D97706',
-    fontWeight: typography.fontWeightBold,
+    fontFamily: fonts.bold,
   },
   modalInput: {
-    height: 46,
+    height: SIZE(46),
     borderWidth: 1,
     borderColor: '#E2E8F0',
     borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    fontSize: typography.fontSizeBase,
+    paddingHorizontal: SIZE(12),
+    fontSize: SIZE(15),
     color: colors.textPrimary,
-    marginBottom: spacing.lg,
+    marginBottom: SIZE(20),
     backgroundColor: '#F8FAFC',
   },
   modalActions: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    gap: SIZE(8),
     justifyContent: 'flex-end',
   },
   modalCancelBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: spacing.lg,
+    paddingVertical: SIZE(10),
+    paddingHorizontal: SIZE(20),
     borderRadius: radius.md,
     backgroundColor: '#F1F5F9',
   },
   modalCancelText: {
-    fontSize: typography.fontSizeSm,
+    fontSize: SIZE(13),
     color: colors.textSecondary,
-    fontWeight: typography.fontWeightSemibold,
+    fontFamily: fonts.semiBold,
   },
   modalSubmitBtn: {
     backgroundColor: '#D97706',
-    paddingVertical: 10,
-    paddingHorizontal: spacing.xl,
+    paddingVertical: SIZE(10),
+    paddingHorizontal: SIZE(24),
     borderRadius: radius.md,
   },
   modalSubmitText: {
-    fontSize: typography.fontSizeSm,
+    fontSize: SIZE(13),
     color: colors.white,
-    fontWeight: typography.fontWeightBold,
+    fontFamily: fonts.bold,
   },
 })
 

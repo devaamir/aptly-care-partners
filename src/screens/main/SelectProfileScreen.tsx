@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
   ActivityIndicator,
   Image,
@@ -14,17 +13,18 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { getContexts, switchContext } from '../../services/api'
 import type { UserContext } from '../../services/types'
 import { useAppContext } from '../../context/AppContext'
-import { colors, typography, spacing, radius } from '../../styles/theme'
-import ArrowLeftIcon from '../../assets/icons/arrow-left.svg'
+import { colors, fonts, radius } from '../../styles/theme'
+import { SIZE } from '../../themes/sizes'
+import RightArrowIcon from '../../assets/icons/right-arrow-grey.svg'
 import WarningRedIcon from '../../assets/icons/warning-red.svg'
-import RightArrowIcon from '../../assets/icons/right-arrow.svg'
+import LocationIcon from '../../assets/icons/location-icon.svg'
 
 interface Props {
   onSelect: () => void
   onBack: () => void
 }
 
-const SelectProfileScreen: React.FC<Props> = ({ onSelect, onBack }) => {
+const SelectProfileScreen: React.FC<Props> = ({ onSelect }) => {
   const { setTokens, setContexts: storeContexts, setActiveContext, setActiveDoctor } = useAppContext()
   const [contexts, setContexts] = useState<UserContext[]>([])
   const [loading, setLoading] = useState(true)
@@ -64,10 +64,20 @@ const SelectProfileScreen: React.FC<Props> = ({ onSelect, onBack }) => {
     }
   }
 
-  const roleLabel = (role: string) => {
-    if (role === 'clinic-manager') return 'Clinic Manager'
-    if (role === 'doctor') return 'Doctor'
-    return role
+  const isDoctor = (role: string) => role === 'doctor'
+
+  const specialtiesLine = (ctx: UserContext) => {
+    const parts: string[] = []
+    if (ctx.medicalCenter.type) parts.push(ctx.medicalCenter.type)
+    if (ctx.medicalCenter.medicalSystem?.name) parts.push(ctx.medicalCenter.medicalSystem.name)
+    return parts.join(' • ')
+  }
+
+  const locationLine = (ctx: UserContext) => {
+    const parts: string[] = []
+    if (ctx.medicalCenter.district) parts.push(ctx.medicalCenter.district)
+    if (ctx.medicalCenter.state) parts.push(ctx.medicalCenter.state)
+    return parts.join(', ')
   }
 
   return (
@@ -76,92 +86,114 @@ const SelectProfileScreen: React.FC<Props> = ({ onSelect, onBack }) => {
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Logo */}
-        <Image
-          source={require('../../assets/images/logo.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+        <Text style={styles.title}>Select Your Profile</Text>
+        <Text style={styles.subtitle}>
+          Enter your email address and password to login
+        </Text>
 
-        {/* Card */}
-        <View style={styles.card}>
-          {/* Back button */}
-          <TouchableOpacity style={styles.backBtn} onPress={onBack}>
-            <ArrowLeftIcon width={16} height={16} fill={colors.primary} />
-            <Text style={styles.backText}>Back to Login</Text>
-          </TouchableOpacity>
-
-          <Text style={styles.title}>Select Profile</Text>
-          <Text style={styles.subtitle}>Choose a clinic profile to continue</Text>
-
-          {loading ? (
-            <View style={styles.centered}>
-              <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-          ) : contexts.length === 0 ? (
-            <View style={styles.centered}>
-              <Text style={styles.emptyText}>No profiles found.</Text>
-            </View>
-          ) : (
-            <View style={styles.list}>
-              {contexts.map((ctx, i) => (
-                <View key={i}>
-                  <TouchableOpacity
-                    style={[
-                      styles.profileCard,
-                      switching === ctx.medicalCenter.id && styles.cardDisabled,
-                      failedId === ctx.medicalCenter.id && styles.cardError,
-                    ]}
-                    onPress={() => handleSelect(ctx)}
-                    disabled={switching !== null}
-                    activeOpacity={0.75}
-                  >
-                    {/* Avatar */}
-                    {ctx.medicalCenter.profilePicture ? (
-                      <Image
-                        source={{ uri: ctx.medicalCenter.profilePicture }}
-                        style={styles.avatar}
-                      />
-                    ) : (
-                      <View style={styles.avatarFallback}>
-                        <Text style={styles.avatarLetter}>
-                          {ctx.medicalCenter.name.charAt(0).toUpperCase()}
+        {loading ? (
+          <View style={styles.centered}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        ) : contexts.length === 0 ? (
+          <View style={styles.centered}>
+            <Text style={styles.emptyText}>No profiles found.</Text>
+          </View>
+        ) : (
+          <View style={styles.list}>
+            {contexts.map((ctx, i) => (
+              <View key={i}>
+                <TouchableOpacity
+                  style={[
+                    styles.card,
+                    switching === ctx.medicalCenter.id && styles.cardDisabled,
+                    failedId === ctx.medicalCenter.id && styles.cardError,
+                  ]}
+                  onPress={() => handleSelect(ctx)}
+                  disabled={switching !== null}
+                  activeOpacity={0.75}
+                >
+                  {isDoctor(ctx.role) ? (
+                    <>
+                      {ctx.medicalCenter.profilePicture ? (
+                        <Image
+                          source={{ uri: ctx.medicalCenter.profilePicture }}
+                          style={styles.doctorAvatar}
+                        />
+                      ) : (
+                        <View style={styles.doctorAvatarFallback}>
+                          <Text style={styles.avatarLetter}>
+                            {ctx.medicalCenter.name.charAt(0).toUpperCase()}
+                          </Text>
+                        </View>
+                      )}
+                      <View style={styles.info}>
+                        <Text style={styles.clinicName} numberOfLines={1}>
+                          {ctx.medicalCenter.name}
                         </Text>
+                        <Text style={styles.doctorSubtitle}>Your Profile</Text>
                       </View>
-                    )}
-
-                    {/* Info */}
-                    <View style={styles.info}>
-                      <Text style={styles.clinicName} numberOfLines={1}>
-                        {ctx.medicalCenter.name}
-                      </Text>
-                      <View style={styles.rolePill}>
-                        <Text style={styles.roleText}>{roleLabel(ctx.role)}</Text>
+                    </>
+                  ) : (
+                    <>
+                      {ctx.medicalCenter.profilePicture ? (
+                        <Image
+                          source={{ uri: ctx.medicalCenter.profilePicture }}
+                          style={styles.clinicImage}
+                        />
+                      ) : (
+                        <View style={styles.clinicImageFallback}>
+                          <Text style={styles.avatarLetter}>
+                            {ctx.medicalCenter.name.charAt(0).toUpperCase()}
+                          </Text>
+                        </View>
+                      )}
+                      <View style={styles.info}>
+                        <Text style={styles.clinicName} numberOfLines={1}>
+                          {ctx.medicalCenter.name}
+                        </Text>
+                        {specialtiesLine(ctx) ? (
+                          <Text style={styles.specialtiesText} numberOfLines={1}>
+                            {specialtiesLine(ctx)}
+                          </Text>
+                        ) : null}
+                        {locationLine(ctx) ? (
+                          <View style={styles.locationRow}>
+                            <LocationIcon
+                              width={SIZE(12)}
+                              height={SIZE(12)}
+                            />
+                            <Text style={styles.locationText} numberOfLines={1}>
+                              {locationLine(ctx)}
+                            </Text>
+                          </View>
+                        ) : null}
                       </View>
-                    </View>
-
-                    {/* Right side */}
-                    {switching === ctx.medicalCenter.id ? (
-                      <ActivityIndicator size="small" color={colors.primary} />
-                    ) : (
-                      <RightArrowIcon width={18} height={18} fill={colors.textMuted} />
-                    )}
-                  </TouchableOpacity>
-
-                  {/* Error banner */}
-                  {failedId === ctx.medicalCenter.id && (
-                    <View style={styles.errorBanner}>
-                      <WarningRedIcon width={14} height={14} />
-                      <Text style={styles.errorText}>
-                        Couldn't switch to this profile. Please try again.
-                      </Text>
-                    </View>
+                    </>
                   )}
-                </View>
-              ))}
-            </View>
-          )}
-        </View>
+
+                  {switching === ctx.medicalCenter.id ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : (
+                    <RightArrowIcon
+                      width={SIZE(18)}
+                      height={SIZE(18)}
+                    />
+                  )}
+                </TouchableOpacity>
+
+                {failedId === ctx.medicalCenter.id && (
+                  <View style={styles.errorBanner}>
+                    <WarningRedIcon width={SIZE(14)} height={SIZE(14)} />
+                    <Text style={styles.errorText}>
+                      Couldn't switch to this profile. Please try again.
+                    </Text>
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   )
@@ -174,64 +206,34 @@ const styles = StyleSheet.create({
   },
   scroll: {
     flexGrow: 1,
-    alignItems: 'center',
-    paddingHorizontal: spacing.base,
-    paddingVertical: spacing['2xl'],
-  },
-  logo: {
-    width: 160,
-    height: 52,
-    marginBottom: spacing['2xl'],
-  },
-  card: {
-    width: '100%',
-    backgroundColor: colors.white,
-    borderRadius: radius.xl,
-    padding: spacing.xl,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 3,
-  },
-  backBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    marginBottom: spacing.xl,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radius.md,
-    backgroundColor: colors.primaryLight,
-  },
-  backText: {
-    fontSize: typography.fontSizeSm,
-    fontWeight: typography.fontWeightSemibold,
-    color: colors.primary,
-    marginLeft: spacing.xs,
+    paddingHorizontal: SIZE(22),
+    paddingTop: SIZE(48),
+    paddingBottom: SIZE(32),
   },
   title: {
-    fontSize: typography.fontSize2xl,
-    fontWeight: typography.fontWeightBold,
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
+    fontSize: SIZE(24),
+    fontFamily: fonts.bold,
+    color: '#1C1E22',
+    marginBottom: SIZE(6),
   },
   subtitle: {
-    fontSize: typography.fontSizeSm,
-    color: colors.textSecondary,
-    marginBottom: spacing.xl,
+    fontSize: SIZE(14),
+    fontFamily: fonts.regular,
+    color: '#636A79',
+    marginBottom: SIZE(35),
   },
   list: {
-    gap: spacing.sm,
+    gap: SIZE(12),
   },
-  profileCard: {
+  card: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    padding: spacing.md,
+    gap: SIZE(12),
+    paddingHorizontal: SIZE(6),
+    paddingVertical: SIZE(6),
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: radius.lg,
+    borderRadius: SIZE(14),
     backgroundColor: colors.white,
   },
   cardDisabled: {
@@ -240,70 +242,94 @@ const styles = StyleSheet.create({
   cardError: {
     borderColor: colors.danger,
   },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.md,
+  clinicImage: {
+    width: SIZE(69),
+    height: SIZE(69),
+    borderRadius: SIZE(10),
   },
-  avatarFallback: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.md,
+  clinicImageFallback: {
+    width: SIZE(69),
+    height: SIZE(69),
+    borderRadius: SIZE(10),
+    backgroundColor: colors.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  doctorAvatar: {
+    width: SIZE(48),
+    height: SIZE(48),
+    borderRadius: SIZE(24),
+  },
+  doctorAvatarFallback: {
+    width: SIZE(48),
+    height: SIZE(48),
+    borderRadius: SIZE(24),
     backgroundColor: colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarLetter: {
-    fontSize: typography.fontSizeLg,
-    fontWeight: typography.fontWeightBold,
+    fontSize: SIZE(18),
+    fontFamily: fonts.bold,
     color: colors.primary,
   },
   info: {
     flex: 1,
-    gap: spacing.xs,
+    gap: SIZE(3),
   },
   clinicName: {
-    fontSize: typography.fontSizeBase,
-    fontWeight: typography.fontWeightSemibold,
-    color: colors.textPrimary,
+    fontSize: SIZE(14),
+    fontFamily: fonts.semiBold,
+    color: '#1C1E22',
   },
-  rolePill: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.primaryLight,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
+  specialtiesText: {
+    fontSize: SIZE(12),
+    fontFamily: fonts.regular,
+    color: '#494F5A',
   },
-  roleText: {
-    fontSize: typography.fontSizeXs,
-    fontWeight: typography.fontWeightMedium,
-    color: colors.primary,
-    textTransform: 'capitalize',
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SIZE(4),
+  },
+  locationText: {
+    flex: 1,
+    fontSize: SIZE(12),
+    fontFamily: fonts.regular,
+    color: '#494F5A',
+  },
+  doctorSubtitle: {
+    fontSize: SIZE(12),
+    fontFamily: fonts.regular,
+    color: colors.textSecondary,
   },
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    marginTop: spacing.xs,
+    gap: SIZE(6),
+    marginTop: SIZE(6),
     backgroundColor: colors.dangerLight,
-    borderRadius: radius.md,
-    padding: spacing.sm,
+    borderRadius: SIZE(10),
+    padding: SIZE(10),
     borderWidth: 1,
     borderColor: '#FFCCC9',
   },
   errorText: {
     flex: 1,
-    fontSize: typography.fontSizeXs,
+    fontSize: SIZE(12),
     color: colors.danger,
-    fontWeight: typography.fontWeightSemibold,
+    fontFamily: fonts.semiBold,
   },
   centered: {
-    paddingVertical: spacing['2xl'],
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SIZE(48),
   },
   emptyText: {
-    fontSize: typography.fontSizeBase,
+    fontSize: SIZE(15),
     color: colors.textMuted,
+    fontFamily: fonts.regular,
   },
 })
 

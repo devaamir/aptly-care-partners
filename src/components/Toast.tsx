@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { View, Text, StyleSheet, Animated } from 'react-native'
-import { colors, typography, spacing, radius } from '../styles/theme'
+import { colors, typography, spacing, radius, fonts } from '../styles/theme'
 
 interface ToastProps {
   message: string
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   text: {
     color: colors.white,
     fontSize: typography.fontSizeSm,
-    fontWeight: typography.fontWeightMedium,
+    fontFamily: fonts.medium,
     textAlign: 'center',
   },
 })
