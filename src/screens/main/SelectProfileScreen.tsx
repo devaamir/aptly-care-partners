@@ -186,6 +186,7 @@ const SelectProfileScreen: React.FC<Props> = ({ onSelect }) => {
                         </Text>
                         {specialtiesLine(ctx) ? (
                           <Text
+                            allowFontScaling={false}
                             style={styles.specialtiesText}
                             numberOfLines={1}
                           >

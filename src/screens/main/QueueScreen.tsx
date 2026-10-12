@@ -624,6 +624,7 @@ const QueueScreen: React.FC = () => {
         <View style={styles.tokenCol}>
           <View style={[styles.tokenBox, isOngoing && styles.tokenBoxCurrent]}>
             <Text
+              allowFontScaling={false}
               style={[
                 styles.tokenNumText,
                 isOngoing && styles.tokenNumTextCurrent,
@@ -652,6 +653,7 @@ const QueueScreen: React.FC = () => {
         {/* Patient name + phone */}
         <View style={styles.queueInfo}>
           <Text
+            allowFontScaling={false}
             style={[
               styles.queuePatient,
               isCancelled && styles.queuePatientCancelled,
@@ -827,6 +829,7 @@ const QueueScreen: React.FC = () => {
                   activeOpacity={0.8}
                 >
                   <Text
+                    allowFontScaling={false}
                     style={[
                       styles.doctorTabText,
                       isSelected && styles.doctorTabTextActive,
@@ -863,6 +866,7 @@ const QueueScreen: React.FC = () => {
                   activeOpacity={0.8}
                 >
                   <Text
+                    allowFontScaling={false}
                     style={[
                       styles.sessionTabText,
                       isActive && styles.sessionTabTextActive,
@@ -930,12 +934,13 @@ const QueueScreen: React.FC = () => {
                   activeOpacity={0.8}
                 >
                   <InstantPauseIcon
-                    width={16}
-                    height={16}
+                    width={SIZE(16)}
+                    height={SIZE(16)}
                     stroke={isPaused ? colors.white : '#494F5A'}
                     color={isPaused ? colors.white : '#494F5A'}
                   />
                   <Text
+                    allowFontScaling={false}
                     style={[
                       styles.heroPillText,
                       isPaused && styles.heroPillTextActive,
@@ -951,8 +956,8 @@ const QueueScreen: React.FC = () => {
                   activeOpacity={0.8}
                 >
                   <ScheduledPauseIcon
-                    width={16}
-                    height={16}
+                    width={SIZE(16)}
+                    height={SIZE(16)}
                     stroke="#494F5A"
                     color="#494F5A"
                   />
@@ -973,8 +978,8 @@ const QueueScreen: React.FC = () => {
                     Skip
                   </Text>
                   <SkipIcon
-                    width={16}
-                    height={16}
+                    width={SIZE(16)}
+                    height={SIZE(16)}
                     stroke="#494F5A"
                     color="#494F5A"
                   />
@@ -990,7 +995,7 @@ const QueueScreen: React.FC = () => {
                 <Text allowFontScaling={false} style={styles.nextTokenText}>
                   Next token
                 </Text>
-                <RightArrowIcon width={16} height={16} stroke={colors.white} />
+                <RightArrowIcon width={SIZE(16)} height={SIZE(16)} stroke={colors.white} />
               </TouchableOpacity>
             </>
           )}
@@ -1002,8 +1007,8 @@ const QueueScreen: React.FC = () => {
         <View style={styles.pauseBanner}>
           <View style={styles.pauseItemLeft}>
             <InstantPauseIcon
-              width={16}
-              height={16}
+              width={SIZE(16)}
+              height={SIZE(16)}
               stroke={colors.warning}
               color={colors.warning}
             />
@@ -1108,8 +1113,8 @@ const QueueScreen: React.FC = () => {
             <View style={styles.modalHeader}>
               <View style={styles.modalIconWrap}>
                 <InstantPauseIcon
-                  width={20}
-                  height={20}
+                  width={SIZE(20)}
+                  height={SIZE(20)}
                   stroke={colors.warning}
                   color={colors.warning}
                 />

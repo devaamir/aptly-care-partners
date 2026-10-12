@@ -1,4 +1,4 @@
-package com.aptlyclinic
+package com.aptly.aptlyclinic
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

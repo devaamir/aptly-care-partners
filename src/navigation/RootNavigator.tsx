@@ -95,9 +95,9 @@ function useTabScreenOptions(): BottomTabNavigationOptions {
   const insets = useSafeAreaInsets();
   const bottomPadding = Math.max(
     insets.bottom,
-    Platform.OS === 'ios' ? 28 : 16,
+    Platform.OS === 'ios' ? SIZE(28) : SIZE(16),
   );
-  const tabHeight = 62 + bottomPadding;
+  const tabHeight = SIZE(62) + bottomPadding;
 
   return {
     tabBarActiveTintColor: '#2879E4',
@@ -109,20 +109,21 @@ function useTabScreenOptions(): BottomTabNavigationOptions {
       height: tabHeight,
       paddingTop: 0,
       paddingBottom: bottomPadding,
-      paddingHorizontal: 12,
+      paddingHorizontal: SIZE(12),
       shadowColor: '#000',
       shadowOffset: { width: 0, height: -2 },
       shadowOpacity: 0.04,
       shadowRadius: 4,
       elevation: 8,
     },
+    tabBarAllowFontScaling: false,
     tabBarLabelStyle: {
-      fontSize: typography.fontSizeXs,
+      fontSize: SIZE(12),
       fontFamily: fonts.medium,
-      marginTop: 2,
+      marginTop: SIZE(2),
     },
     tabBarItemStyle: {
-      paddingVertical: 2,
+      paddingVertical: SIZE(2),
     },
     tabBarButton: props => <TabBarButton {...props} />,
     headerShown: false,
@@ -417,7 +418,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 2.5,
     borderTopColor: 'transparent',
     marginTop: -1,
-    paddingTop: 8,
+    paddingTop: SIZE(8),
   },
   tabBarButtonActive: {
     borderTopColor: '#2879E4',

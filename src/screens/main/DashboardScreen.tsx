@@ -338,16 +338,17 @@ const DashboardScreen: React.FC = () => {
                         <DownArrowRedIcon
                           width={SIZE(8)}
                           height={SIZE(8)}
-                          style={{ marginRight: 2 }}
+                          style={{ marginRight: SIZE(2) }}
                         />
                       ) : (
                         <DownArrowRedIcon
                           width={SIZE(8)}
                           height={SIZE(8)}
-                          style={{ marginRight: 2 }}
+                          style={{ marginRight: SIZE(2) }}
                         />
                       )}
                       <Text
+                        allowFontScaling={false}
                         style={[styles.trendText, styles.trendTextNegative]}
                       >
                         {Math.abs(
@@ -402,16 +403,17 @@ const DashboardScreen: React.FC = () => {
                         <UpArrowGreenIcon
                           width={SIZE(8)}
                           height={SIZE(8)}
-                          style={{ marginRight: 2 }}
+                          style={{ marginRight: SIZE(2) }}
                         />
                       ) : (
                         <DownArrowRedIcon
                           width={SIZE(8)}
                           height={SIZE(8)}
-                          style={{ marginRight: 2 }}
+                          style={{ marginRight: SIZE(2) }}
                         />
                       )}
                       <Text
+                        allowFontScaling={false}
                         style={[
                           styles.trendText,
                           data.patients.growthPercentage >= 0
@@ -571,6 +573,7 @@ const DashboardScreen: React.FC = () => {
                             : `Dr. ${doc.name}`}
                         </Text>
                         <Text
+                          allowFontScaling={false}
                           style={styles.doctorSpecialtyText}
                           numberOfLines={1}
                         >
@@ -603,6 +606,7 @@ const DashboardScreen: React.FC = () => {
                         ]}
                       >
                         <Text
+                          allowFontScaling={false}
                           style={[
                             styles.statusPillText,
                             status.isLive

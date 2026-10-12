@@ -1,3 +1,5 @@
+import { SIZE } from '../themes/sizes';
+
 export const colors = {
   primary: '#418EFD',
   primaryLight: '#EAF3FF',
@@ -36,14 +38,14 @@ export const fonts = {
 }
 
 export const typography = {
-  fontSizeXs: 11,
-  fontSizeSm: 13,
-  fontSizeBase: 15,
-  fontSizeMd: 16,
-  fontSizeLg: 18,
-  fontSizeXl: 20,
-  fontSize2xl: 24,
-  fontSize3xl: 28,
+  fontSizeXs: SIZE(11),
+  fontSizeSm: SIZE(13),
+  fontSizeBase: SIZE(15),
+  fontSizeMd: SIZE(16),
+  fontSizeLg: SIZE(18),
+  fontSizeXl: SIZE(20),
+  fontSize2xl: SIZE(24),
+  fontSize3xl: SIZE(28),
   fontWeightNormal: '400' as const,
   fontWeightMedium: '500' as const,
   fontWeightSemibold: '600' as const,
@@ -51,21 +53,21 @@ export const typography = {
 }
 
 export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  base: 16,
-  lg: 20,
-  xl: 24,
-  '2xl': 32,
-  '3xl': 40,
-  '4xl': 48,
+  xs: SIZE(4),
+  sm: SIZE(8),
+  md: SIZE(12),
+  base: SIZE(16),
+  lg: SIZE(20),
+  xl: SIZE(24),
+  '2xl': SIZE(32),
+  '3xl': SIZE(40),
+  '4xl': SIZE(48),
 }
 
 export const radius = {
-  sm: 6,
-  md: 10,
-  lg: 14,
-  xl: 18,
+  sm: SIZE(6),
+  md: SIZE(10),
+  lg: SIZE(14),
+  xl: SIZE(18),
   full: 999,
 }

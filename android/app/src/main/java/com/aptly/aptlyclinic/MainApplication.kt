@@ -1,4 +1,4 @@
-package com.aptlyclinic
+package com.aptly.aptlyclinic
 
 import android.app.Application
 import com.facebook.react.PackageList

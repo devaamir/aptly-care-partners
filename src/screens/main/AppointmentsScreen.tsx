@@ -932,6 +932,7 @@ const AppointmentsScreen: React.FC = () => {
             activeOpacity={0.7}
           >
             <Text
+              allowFontScaling={false}
               style={[
                 styles.statusFilterBtnText,
                 !!statusFilter && styles.statusFilterBtnTextActive,
@@ -982,6 +983,7 @@ const AppointmentsScreen: React.FC = () => {
                   />
                 )}
                 <Text
+                  allowFontScaling={false}
                   style={[
                     styles.filterTabText,
                     isActive && styles.filterTabTextActive,
@@ -996,6 +998,7 @@ const AppointmentsScreen: React.FC = () => {
                   ]}
                 >
                   <Text
+                    allowFontScaling={false}
                     style={[
                       styles.filterTabCountText,
                       isActive && styles.filterTabCountTextActive,
@@ -1620,6 +1623,7 @@ const AppointmentsScreen: React.FC = () => {
                     ) : (
                       <>
                         <Text
+                          allowFontScaling={false}
                           style={[styles.inputLabel, { marginTop: SIZE(12) }]}
                         >
                           Patient Full Name{' '}
@@ -1640,6 +1644,7 @@ const AppointmentsScreen: React.FC = () => {
                         />
 
                         <Text
+                          allowFontScaling={false}
                           style={[styles.inputLabel, { marginTop: SIZE(12) }]}
                         >
                           Gender
@@ -1656,6 +1661,7 @@ const AppointmentsScreen: React.FC = () => {
                               activeOpacity={0.7}
                             >
                               <Text
+                                allowFontScaling={false}
                                 style={[
                                   styles.genderChipText,
                                   patientGender === g &&
@@ -1669,6 +1675,7 @@ const AppointmentsScreen: React.FC = () => {
                         </View>
 
                         <Text
+                          allowFontScaling={false}
                           style={[styles.inputLabel, { marginTop: SIZE(12) }]}
                         >
                           Age
@@ -1752,6 +1759,7 @@ const AppointmentsScreen: React.FC = () => {
                                 style={styles.doctorSelectAvatar}
                               />
                               <Text
+                                allowFontScaling={false}
                                 style={[
                                   styles.doctorSelectName,
                                   isSelected && styles.doctorSelectNameActive,
@@ -1761,6 +1769,7 @@ const AppointmentsScreen: React.FC = () => {
                                 {doc.name}
                               </Text>
                               <Text
+                                allowFontScaling={false}
                                 style={[
                                   styles.doctorSelectSpecialty,
                                   isSelected &&
@@ -1814,6 +1823,7 @@ const AppointmentsScreen: React.FC = () => {
                             activeOpacity={0.7}
                           >
                             <Text
+                              allowFontScaling={false}
                               style={[
                                 styles.dateSelectWeekday,
                                 isSelected && styles.dateSelectWeekdayActive,
@@ -1822,6 +1832,7 @@ const AppointmentsScreen: React.FC = () => {
                               {item.weekday}
                             </Text>
                             <Text
+                              allowFontScaling={false}
                               style={[
                                 styles.dateSelectDay,
                                 isSelected && styles.dateSelectDayActive,
@@ -1916,6 +1927,7 @@ const AppointmentsScreen: React.FC = () => {
                                     }
                                   />
                                   <Text
+                                    allowFontScaling={false}
                                     style={[
                                       styles.scheduleTimeText,
                                       isSelected &&
@@ -1940,6 +1952,7 @@ const AppointmentsScreen: React.FC = () => {
                                   ]}
                                 >
                                   <Text
+                                    allowFontScaling={false}
                                     style={[
                                       styles.tokenPillText,
                                       isExpired
@@ -1978,7 +1991,7 @@ const AppointmentsScreen: React.FC = () => {
                 <View
                   style={[
                     styles.modalStickyFooter,
-                    { paddingBottom: Math.max(insets.bottom, 14) },
+                    { paddingBottom: Math.max(insets.bottom, SIZE(14)) },
                   ]}
                 >
                   <TouchableOpacity
@@ -2014,7 +2027,7 @@ const AppointmentsScreen: React.FC = () => {
         onPress={handleOpenBookingModal}
         activeOpacity={0.85}
       >
-        <AddIconWhite width={24} height={24} />
+        <AddIconWhite width={SIZE(24)} height={SIZE(24)} />
       </TouchableOpacity>
     </SafeAreaView>
   );
